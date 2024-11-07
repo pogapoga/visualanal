@@ -1,5 +1,9 @@
 <script>
-  const { data } = $props()
+  const data = $props()
 </script>
 
-{JSON.stringify(data)}
+<ul>
+  {#each data.flowers as flower}
+  <li>{flower.sepalLength}</li>
+  {/each}
+</ul>
