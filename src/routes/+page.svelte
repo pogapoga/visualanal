@@ -1,3 +1,4 @@
+<h1>hello </h1>
 import Papa from 'papaparse'
 
 export async function load({ fetch, params }) {
