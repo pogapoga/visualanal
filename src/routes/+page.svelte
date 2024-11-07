@@ -42,3 +42,5 @@
     circle.international {
         fill: red !important;
     }
+
+</style>
