@@ -8,3 +8,4 @@ export async function load({ fetch, params }) {
 
     return { flights: parsedCsvFlights.data }
 }
+console.log()
