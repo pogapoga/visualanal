@@ -1,6 +1,6 @@
-<h1>Flights from germany and india</h1>
 
-<h1>Welcome to SvelteKit</h1>
+
+<h1>Flights from Germany</h1>
 
 <script>
     import { base } from '$app/paths';
@@ -16,10 +16,10 @@
         flights = allFlights.filter(flight => flight.from_country === "Germany");
     });
 
-    // Scaling values
-    const scaleX = scaleLinear().domain([-180, 180]).range([0, 800]);
-    const scaleY = scaleLinear().domain([-90, 90]).range([400, 0]);
-    const scaleColour = scaleLinear().domain([-180, 180]).range(["brown", "green"]);
+    // Adjusted scaling values for zoomed-in view
+    const scaleX = scaleLinear().domain([-30, 60]).range([0, 800]);
+    const scaleY = scaleLinear().domain([-10, 70]).range([400, 0]);
+    const scaleColour = scaleLinear().domain([-30, 60]).range(["brown", "green"]);
     const scaleRadius = scaleLinear().domain([1, 15406]).range([2, 10]);
 
 </script>
@@ -33,11 +33,11 @@
               y2={scaleY(datapoint.to_lat)}
               style="stroke:blue; stroke-width:1; opacity:0.5"/>
 
-        <!-- Draw circle at the origin of the flight -->
-        <circle cx={scaleX(datapoint.from_long)}
-                cy={scaleY(datapoint.from_lat)}
+        <!-- Draw circle at the destination of the flight -->
+        <circle cx={scaleX(datapoint.to_long)}
+                cy={scaleY(datapoint.to_lat)}
                 r={scaleRadius(datapoint.distance)}            
-                style={"fill:" + scaleColour(datapoint.from_long)}
+                style={"fill:" + scaleColour(datapoint.to_long)}
                 class:international={datapoint.from_country != datapoint.to_country}/>
     {/each}
 </svg>
