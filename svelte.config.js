@@ -7,7 +7,7 @@ const config = {
 			fallback: '404.html'
 		}),
 		paths: {
-			base: process.argv.includes('dev') ? '' : '/vizanal'
+			base: process.argv.includes('dev') ? '' : '/visualanal'
 		}
 	}
 };
