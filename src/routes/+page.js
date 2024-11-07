@@ -1,5 +1,5 @@
 export function load({ params }) {
   return {
-    values: [1,2,3,"poga"]
+    values: [12313,2,3,"poga"]
   }
 }
