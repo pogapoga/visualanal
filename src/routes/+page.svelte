@@ -20,8 +20,8 @@
     const scaleColour = scaleLinear().domain([-180, 180]).range(["brown", "green"]);
     const scaleRadius = scaleLinear().domain([1, 15406]).range([2, 10]);
 
-    const lineYOffset = 45; 
-    const lineXOffset = -26; // Amount to move lines down and to the left
+    const lineYOffset = 38; 
+    const lineXOffset = -22; // Amount to move lines down and to the left
 </script>
 
 <svg width="800" height="400">
@@ -34,7 +34,7 @@
               y1={scaleY(datapoint.from_lat) + lineYOffset}
               x2={scaleX(datapoint.to_long) + lineXOffset}
               y2={scaleY(datapoint.to_lat) + lineYOffset}
-              style="stroke:blue; stroke-width:0.3; opacity:0.65"/>
+              style="stroke:blue; stroke-width:0.3; opacity:0.7"/>
 
         <!-- Circle at the destination of the flight, applying the same offsets -->
         <circle cx={scaleX(datapoint.to_long) + lineXOffset}
