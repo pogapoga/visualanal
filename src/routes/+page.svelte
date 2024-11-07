@@ -26,7 +26,7 @@
 
 <svg width="800" height="400">
     <!-- Overlay the world map image -->
-    <image href="https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.pngwing.com%2Fen%2Ffree-png-aqnre&psig=AOvVaw1XdqY0BfAx7XOEBTErskhg&ust=1731063959934000&source=images&cd=vfe&opi=89978449&ved=0CBEQjRxqFwoTCNjHlPaJyokDFQAAAAAdAAAAABAJ" x="0" y="0" width="800" height="400" opacity="0.5" />
+    <image href="/images/world_map.png" x="0" y="0" width="800" height="400" opacity="0.5" />
 
     {#each flights as datapoint}
         <!-- Thinner line representing the flight path with downward and leftward offset -->
