@@ -1,5 +1,6 @@
 <script>
   const data = $props()
+  <h1>hello</h1>
 </script>
 
 <ul>
