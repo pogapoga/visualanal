@@ -1,5 +1,7 @@
 <h1>Flights from germany and india</h1>
 
+<h1>Welcome to SvelteKit</h1>
+
 <script>
     import { base } from '$app/paths';
     import { onMount } from 'svelte';
@@ -10,11 +12,8 @@
     onMount(async () => {
         const response = await fetch(base + "/flights_part.json");
         const allFlights = await response.json();
-        // Filter for flights between India and Germany
-        flights = allFlights.filter(flight => 
-            (flight.from_country === "India" && flight.to_country === "Germany") ||
-            (flight.from_country === "Germany" && flight.to_country === "India")
-        );
+        // Filter for flights originating from Germany
+        flights = allFlights.filter(flight => flight.from_country === "Germany");
     });
 
     // Scaling values
