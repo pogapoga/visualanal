@@ -1,5 +1,9 @@
-<script>
-    const { data } = $props()
-</script>
+import Papa from 'papaparse'
 
-{JSON.stringify(data)}
+export async function load({ fetch, params }) {
+    const responseFlights = await fetch('https://jan-to.github.io/WebDataVis/flights_part.csv', 
+      { headers: { 'Content-Type': 'text/csv' } })
+    let csvFlights = await responseFlights.text()
+    let parsedCsvFlights = Papa.parse(csvFlights, {header: true})
+
+    return { flights: parsedCsvFlights.data }
