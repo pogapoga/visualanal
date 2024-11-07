@@ -1,4 +1,4 @@
-<h1>Welcome to SvelteKit</h1>
+<h1>Flights from germany and india</h1>
 
 <script>
     import { base } from '$app/paths';
@@ -27,11 +27,19 @@
 
 <svg width="800" height="400">
     {#each flights as datapoint}
+        <!-- Draw line representing the flight path -->
+        <line x1={scaleX(datapoint.from_long)}
+              y1={scaleY(datapoint.from_lat)}
+              x2={scaleX(datapoint.to_long)}
+              y2={scaleY(datapoint.to_lat)}
+              style="stroke:blue; stroke-width:1; opacity:0.5"/>
+
+        <!-- Draw circle at the origin of the flight -->
         <circle cx={scaleX(datapoint.from_long)}
-            cy={scaleY(datapoint.from_lat)}
-            r={scaleRadius(datapoint.distance)}
-            style={"fill:" + scaleColour(datapoint.from_long)}
-            class:international={datapoint.from_country != datapoint.to_country}/>
+                cy={scaleY(datapoint.from_lat)}
+                r={scaleRadius(datapoint.distance)}            
+                style={"fill:" + scaleColour(datapoint.from_long)}
+                class:international={datapoint.from_country != datapoint.to_country}/>
     {/each}
 </svg>
 
