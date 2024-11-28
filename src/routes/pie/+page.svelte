@@ -1,6 +1,7 @@
 <script>
     import * as d3 from "d3";
     import { onMount } from "svelte";
+    import { goto } from '$app/navigation'; 
   
     let victoryTypes = [];
   
@@ -80,9 +81,27 @@
       display: block;
       margin: 0 auto;
     }
+    button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 20px;
+    background-color: #4682B4;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+  }
+
+  button:hover {
+    background-color: #355f73;
+  }
   </style>
   
-  <!-- Pie chart content -->
+
   <h1>Victory Types Pie Chart</h1>
-  <div id="victory-pie-chart"></div>
+  <div id="victory-pie-chart">
+    
+  <button on:click={() => goto('/')}>Back</button>
+  </div>
   
