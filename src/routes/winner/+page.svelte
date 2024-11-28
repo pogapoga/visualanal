@@ -12,8 +12,8 @@
         const rawData = await response.text();
         data = d3.csvParse(rawData);
   
-        topOpenings = getTopOpenings(data);
-        drawOpeningChart(topOpenings);
+        const winnerData = countWins(data);
+        drawWinnerChart(winnerData);
       } catch (error) {
         console.error("Error loading or processing CSV data:", error);
       }

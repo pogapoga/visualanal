@@ -2,10 +2,8 @@
   import * as d3 from "d3";
   import { onMount } from "svelte";
   import { goto } from '$app/navigation'; 
-  
-  let data = [];
+
   let topOpenings = [];
-  let victoryTypes = [];
 
   onMount(async () => {
     const response = await fetch('./games.csv');
@@ -121,107 +119,9 @@
       .text("Game Winner Counts");
   }
 
-  function drawOpeningChart(topOpenings) {
-    const margin = { top: 40, right: 30, bottom: 60, left: 50 };
-    const width = 900 - margin.left - margin.right;
-    const height = 600 - margin.top - margin.bottom;
+  
 
-    const svg = d3
-      .select("#opening-chart")
-      .append("svg")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-      .append("g")
-      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-    const x = d3
-      .scaleBand()
-      .domain(topOpenings.map((d) => d.opening))
-      .range([0, width])
-      .padding(0.1);
-
-    const y = d3
-      .scaleLinear()
-      .domain([0, d3.max(topOpenings, (d) => d.count)])
-      .nice()
-      .range([height, 0]);
-
-    svg
-      .selectAll(".bar")
-      .data(topOpenings)
-      .enter()
-      .append("rect")
-      .attr("class", "bar")
-      .attr("x", (d) => x(d.opening))
-      .attr("y", (d) => y(d.count))
-      .attr("width", x.bandwidth())
-      .attr("height", (d) => height - y(d.count))
-      .attr("fill", "#4682B4");
-
-    svg
-      .append("g")
-      .attr("transform", "translate(0," + height + ")")
-      .call(d3.axisBottom(x).ticks(0));
-
-    svg.append("g").call(d3.axisLeft(y).ticks(5));
-
-    svg.append("text")
-      .attr("x", width / 2)
-      .attr("y", -margin.top / 2)
-      .attr("text-anchor", "middle")
-      .style("font-size", "20px")
-      .style("font-weight", "bold")
-      .text("Top 5 Chess Openings");
-  }
-
-  function drawVictoryPieChart(victoryTypes) {
-    const width = 500;
-    const height = 500;
-    const radius = Math.min(width, height) / 2;
-
-    const color = d3
-      .scaleOrdinal()
-      .domain(victoryTypes.map((d) => d.victory))
-      .range(d3.schemeCategory10);
-
-    const svg = d3
-      .select("#victory-pie-chart")
-      .append("svg")
-      .attr("width", width)
-      .attr("height", height)
-      .append("g")
-      .attr("transform", `translate(${width / 2}, ${height / 2})`);
-
-    const pie = d3.pie().value((d) => d.count);
-    const arc = d3
-      .arc()
-      .innerRadius(0)
-      .outerRadius(radius);
-
-    const arcs = svg
-      .selectAll("arc")
-      .data(pie(victoryTypes))
-      .enter()
-      .append("g")
-      .attr("class", "arc");
-
-    arcs
-      .append("path")
-      .attr("d", arc)
-      .attr("fill", (d) => color(d.data.victory));
-
-    arcs
-      .append("text")
-      .attr("transform", (d) => `translate(${arc.centroid(d)})`)
-      .attr("text-anchor", "middle")
-      .style("font-size", "12px")
-      .text((d) =>
-        `${d.data.victory}: ${(
-          (d.data.count / d3.sum(victoryTypes, (d) => d.count)) *
-          100
-        ).toFixed(1)}%`
-      );
-  }
+  
 </script>
 
 <style>
@@ -269,14 +169,14 @@
     background-color: #355f73;
   }
 </style>
-
+<h1>Visual analytics Project</h1>
 <div id="chart-container">
   <div id="winner-chart" class="chart"></div>
   <div id="opening-chart" class="chart"></div>
   <div id="victory-chart" class="chart"></div>
   
 
-  <button on:click={() => goto('/pie')}>Pie Chart</button>
+  <button on:click={() => goto('/pie')}>Victory type Pie Chart</button>
   
-  <button on:click={() => goto('/openings')}>Bar Chart</button>
+  <button on:click={() => goto('/openings')}>Top openings Bar Chart</button>
 </div>
