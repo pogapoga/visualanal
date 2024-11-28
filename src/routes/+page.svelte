@@ -7,7 +7,7 @@
     let victoryTypes = [];
   
     onMount(async () => {
-      const response = await fetch('/games.csv');
+      const response = await fetch('./games.csv');
       const rawData = await response.text();
       data = d3.csvParse(rawData);
   
