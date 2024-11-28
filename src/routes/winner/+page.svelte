@@ -1,140 +1,117 @@
 <script>
     import * as d3 from "d3";
     import { onMount } from "svelte";
-    import { goto } from '$app/navigation'; 
-    
-    let data = []; 
-    let topOpenings = [];
+  
+    let winnerData = []; // Processed data for the chart
   
     onMount(async () => {
-      try {
-        const response = await fetch('./games.csv');
-        const rawData = await response.text();
-        data = d3.csvParse(rawData);
+      // Load the CSV data
+      const response = await fetch('./games.csv');
+      const rawData = await response.text();
+      const parsedData = d3.csvParse(rawData);
   
-        const winnerData = countWins(data);
-        drawWinnerChart(winnerData);
-      } catch (error) {
-        console.error("Error loading or processing CSV data:", error);
-      }
+      // Process the data to count winners
+      winnerData = getWinnerCounts(parsedData);
+  
+      // Draw the chart
+      drawDonutChart(winnerData);
     });
   
-    function getTopOpenings(data) {
-      const openingCounts = {};
+    // Function to calculate winner counts
+    function getWinnerCounts(data) {
+      const counts = { White: 0, Black: 0, Draw: 0 };
       data.forEach((game) => {
-        const opening = game.opening_name;
-        if (opening) {
-          openingCounts[opening] = (openingCounts[opening] || 0) + 1;
-        }
+        if (game.winner === "white") counts.White++;
+        else if (game.winner === "black") counts.Black++;
+        else if (game.winner === "draw") counts.Draw++;
       });
   
-      const sortedOpenings = Object.entries(openingCounts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5);
-      return sortedOpenings.map(([opening, count]) => ({ opening, count }));
+      return Object.entries(counts).map(([category, count]) => ({
+        category,
+        count,
+      }));
     }
   
-    function drawOpeningChart(topOpenings) {
-      const margin = { top: 40, right: 30, bottom: 60, left: 50 };
-      const width = 900 - margin.left - margin.right;
-      const height = 600 - margin.top - margin.bottom;
+    // Function to draw the donut chart
+    function drawDonutChart(data) {
+      const width = 400;
+      const height = 400;
+      const margin = 50;
+      const radius = Math.min(width, height) / 2 - margin;
+      const labelArc = d3
+  .arc()
+  .innerRadius(radius * 0.7) 
+  .outerRadius(radius * 3.0);
+  
+      d3.select("#donut-chart").selectAll("*").remove();
   
       const svg = d3
-        .select("#opening-chart")
+        .select("#donut-chart")
         .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
+        .attr("width", width)
+        .attr("height", height)
         .append("g")
-        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+        .attr("transform", `translate(${width / 2}, ${height / 2})`);
   
-      const x = d3
-        .scaleBand()
-        .domain(topOpenings.map((d) => d.opening))
-        .range([0, width])
-        .padding(0.1);
+      const color = d3
+        .scaleOrdinal()
+        .domain(data.map((d) => d.category))
+        .range(["#FFFFFF", "#000000", "#808080"]); 
   
-      const y = d3
-        .scaleLinear()
-        .domain([0, d3.max(topOpenings, (d) => d.count)])
-        .nice()
-        .range([height, 0]);
+      const pie = d3
+        .pie()
+        .value((d) => d.count)
+        .sort(null);
   
-      svg
-        .selectAll(".bar")
-        .data(topOpenings)
-        .enter()
-        .append("rect")
-        .attr("class", "bar")
-        .attr("x", (d) => x(d.opening))
-        .attr("y", (d) => y(d.count))
-        .attr("width", x.bandwidth())
-        .attr("height", (d) => height - y(d.count))
-        .attr("fill", "#4682B4");
+      const arc = d3
+        .arc()
+        .innerRadius(radius * 0.5) 
+        .outerRadius(radius);
   
-      svg
-        .append("g")
-        .attr("transform", `translate(0, ${height})`)
-        .call(d3.axisBottom(x));
+      const arcs = svg.selectAll("arc").data(pie(data)).enter().append("g");
   
-      svg.append("g").call(d3.axisLeft(y).ticks(5));
+      arcs
+        .append("path")
+        .attr("d", arc)
+        .attr("fill", (d) => color(d.data.category))
+        .attr("stroke", "black")
+        .style("stroke-width", "2px");
   
-      svg.append("text")
-        .attr("x", width / 2)
-        .attr("y", -margin.top / 2)
+   
+      arcs
+        .append("text")
+        .attr("transform", (d) => `translate(${arc.centroid(d)})`)
         .attr("text-anchor", "middle")
-        .style("font-size", "20px")
-        .style("font-weight", "bold")
-        .text("Top 5 Chess Openings");
+        .style("font-size", "14px")
+        .text((d) => `${d.data.category}: ${d.data.count}`);
     }
   </script>
-  
-  <style>
-    .chart {
-      margin: 30px 0;
-      width: 100%;
+   <style>
+    svg {
+      display: block;
+      margin: 0 auto;
     }
-  
-    .bar {
-      transition: all 0.3s ease;
-    }
-  
-    .bar:hover {
-      opacity: 0.7;
-    }
-  
-    text {
-      font-size: 14px;
-      fill: #333;
-    }
-  
-    .axis path,
-    .axis line {
-      fill: none;
-      shape-rendering: crispEdges;
-    }
-  
-    .axis text {
-      font-size: 12px;
-    }
-  
     button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 20px;
-      background-color: #4682B4;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      transition: background-color 0.3s;
-    }
-  
-    button:hover {
-      background-color: #355f73;
-    }
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 20px;
+    background-color: #4682B4;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+  }
+
+  button:hover {
+    background-color: #355f73;
+  }
   </style>
   
-  <h1>Top 5 Chess Openings</h1>
-  <div id="opening-chart" class="chart"></div>
-  <button on:click={() => goto('/')}>Back to Home</button>
+
+  <h1>Winner Donut Chart</h1>
+  <div id="donut-chart">
+    
+  <button on:click={() => goto('/')}>Back</button>
+  </div>
   

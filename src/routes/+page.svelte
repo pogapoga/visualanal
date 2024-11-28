@@ -179,4 +179,5 @@
   <button on:click={() => goto('/pie')}>Victory type Pie Chart</button>
   
   <button on:click={() => goto('/openings')}>Top openings Bar Chart</button>
+  <button on:click={() => goto('/winner')}>Winners Donut Chart</button>
 </div>
