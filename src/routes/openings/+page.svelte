@@ -136,5 +136,5 @@
   
   <h1>Top 5 Chess Openings</h1>
   <div id="opening-chart" class="chart"></div>
-  <button on:click={() => goto('/')}>Back to Home</button>
+  <button on:click={() => goto('/visualanal/')}>Back</button>
   

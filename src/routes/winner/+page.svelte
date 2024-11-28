@@ -115,6 +115,6 @@
   
   <div class="chart-container">
     <div id="donut-chart"></div>
-    <button on:click={() => goto('/')}>Back</button>
+    <button on:click={() => goto('/visualanal/')}>Back</button>
   </div>
   

@@ -102,6 +102,6 @@
   <h1>Victory Types Pie Chart</h1>
   <div id="victory-pie-chart">
     
-  <button on:click={() => goto('/')}>Back</button>
+  <button on:click={() => goto('/visualanal/')}>Back</button>
   </div>
   
