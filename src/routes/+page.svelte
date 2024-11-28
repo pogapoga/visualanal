@@ -277,4 +277,6 @@
   
 
   <button on:click={() => goto('/pie')}>Pie Chart</button>
+  
+  <button on:click={() => goto('/openings')}>Bar Chart</button>
 </div>
