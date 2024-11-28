@@ -1,7 +1,8 @@
 <script>
     import * as d3 from "d3";
     import { onMount } from "svelte";
-  
+    import { goto } from '$app/navigation'; 
+    
     let winnerData = []; // Processed data for the chart
   
     onMount(async () => {
@@ -87,31 +88,33 @@
     }
   </script>
    <style>
-    svg {
-      display: block;
-      margin: 0 auto;
+    .chart-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 20px;
+      flex-direction: column;
     }
+  
     button {
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 20px;
-    background-color: #4682B4;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    transition: background-color 0.3s;
-  }
-
-  button:hover {
-    background-color: #355f73;
-  }
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #4682B4;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+  
+    button:hover {
+      background-color: #355f73;
+    }
   </style>
   
-
-  <h1>Winner Donut Chart</h1>
-  <div id="donut-chart">
-    
-  <button on:click={() => goto('/')}>Back</button>
+  <div class="chart-container">
+    <div id="donut-chart"></div>
+    <button on:click={() => goto('/')}>Back</button>
   </div>
   
