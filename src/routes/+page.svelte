@@ -276,5 +276,5 @@
   <div id="victory-chart" class="chart"></div>
   
 
-  <button on:click={() => goto('/visualanal/pie')}>Pie Chart</button>
+  <button on:click={() => goto('/pie')}>Pie Chart</button>
 </div>
