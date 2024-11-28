@@ -176,8 +176,8 @@
   <div id="victory-chart" class="chart"></div>
   
 
-  <button on:click={() => goto('/visualanal//pie')}>Victory type Pie Chart</button>
+  <button on:click={() => goto('/visualanal/pie')}>Victory type Pie Chart</button>
   
-  <button on:click={() => goto('/visualanal//openings')}>Top openings Bar Chart</button>
+  <button on:click={() => goto('/visualanal/openings')}>Top openings Bar Chart</button>
   <button on:click={() => goto('/visualanal/winner')}>Winners Donut Chart</button>
 </div>
