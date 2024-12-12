@@ -1,158 +1,103 @@
 <script>
-  import * as d3 from "d3";
-  import { onMount } from "svelte";
   import { goto } from '$app/navigation'; 
+  import { onMount } from "svelte";
+  import Chart from "chart.js/auto";
 
-  let topOpenings = [];
+  let movesData = [];
+  let selectedMove = "";
+  let moveCounts = {};
+  let chartInstance;
 
-  onMount(async () => {
-    const response = await fetch('./games.csv');
-    const rawData = await response.text();
-    data = d3.csvParse(rawData);
+  
+  const possibleWhiteMoves = [
+    "e4", "d4", "Nf3", "c4", "e3", "g3", "f4", "b3", "a3", 
+    "h3", "Nc3", "Nf3", "Nh3", "b4", "d3", "f3", "g4", "Nf3",
+    "c3",
+  ];
 
-    const winnerData = countWins(data);
-    drawWinnerChart(winnerData);
+ 
+  function parseCSV(data) {
+    const rows = data.split("\n");
+    const headers = rows.shift().split(",");
+    return rows
+      .filter(row => row.trim() !== "") 
+      .map(row => {
+        const values = row.split(",");
+        return headers.reduce((acc, header, index) => {
+          acc[header] = values[index];
+          return acc;
+        }, {});
+      });
+  }
 
-    topOpenings = getTopOpenings(data);
-    drawOpeningChart(topOpenings);
-
-    victoryTypes = getVictoryTypes(data);
-    drawVictoryChart(victoryTypes);
-  });
-
-  function countWins(data) {
-    const counts = { White: 0, Black: 0, Draw: 0 };
-    data.forEach((game) => {
-      if (game.winner === "white") counts.White++;
-      else if (game.winner === "black") counts.Black++;
-      else counts.Draw++;
+  
+  function calculateMoveFrequencies(data, whiteMove) {
+    const counts = {};
+    data.forEach(game => {
+      if (game.moves) {
+        const moves = game.moves.split(" ");
+        if (moves[0] === whiteMove && moves[1]) {
+          const blackMove = moves[1]; 
+          counts[blackMove] = (counts[blackMove] || 0) + 1;
+        }
+      }
     });
     return counts;
   }
 
-  function getTopOpenings(data) {
-    const openingCounts = {};
-    data.forEach((game) => {
-      const opening = game.opening_name;
-      if (opening) {
-        openingCounts[opening] = (openingCounts[opening] || 0) + 1;
-      }
+ 
+  function updateChart(whiteMove) {
+    if (chartInstance) {
+      chartInstance.destroy();
+    }
+
+
+    const blackResponses = calculateMoveFrequencies(movesData, whiteMove);
+
+    const canvas = document.getElementById("moveChart");
+    if (!canvas) {
+      console.error("Canvas element not found");
+      return;
+    }
+
+    const ctx = canvas.getContext("2d");
+    chartInstance = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: Object.keys(blackResponses),
+        datasets: [
+          {
+            label: `Black's responses to ${whiteMove}`,
+            data: Object.values(blackResponses),
+            backgroundColor: "rgba(75, 192, 192, 0.6)",
+            borderColor: "rgba(75, 192, 192, 1)",
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+          },
+        },
+      },
     });
-
-    const sortedOpenings = Object.entries(openingCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
-    return sortedOpenings.map(([opening, count]) => ({ opening, count }));
   }
 
-  function getVictoryTypes(data) {
-    const victoryCounts = {};
-    data.forEach((game) => {
-      const victory = game.victory_status;
-      if (victory) {
-        victoryCounts[victory] = (victoryCounts[victory] || 0) + 1;
-      }
-    });
-    return Object.entries(victoryCounts).map(([victory, count]) => ({ victory, count }));
-  }
 
-  function drawWinnerChart(countData) {
-    const margin = { top: 40, right: 30, bottom: 60, left: 50 };
-    const width = 500 - margin.left - margin.right;
-    const height = 600 - margin.top - margin.bottom;
-
-    const svg = d3
-      .select("#winner-chart")
-      .append("svg")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-      .append("g")
-      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-    const dataArray = Object.entries(countData).map(([key, value]) => ({
-      category: key,
-      value: value
-    }));
-
-    const x = d3
-      .scaleBand()
-      .domain(dataArray.map((d) => d.category))
-      .range([0, width])
-      .padding(0.1);
-
-    const y = d3
-      .scaleLinear()
-      .domain([0, 20000])
-      .nice()
-      .range([height, 0]);
-
-    svg
-      .selectAll(".bar")
-      .data(dataArray)
-      .enter()
-      .append("rect")
-      .attr("class", "bar")
-      .attr("x", (d) => x(d.category))
-      .attr("y", (d) => y(d.value))
-      .attr("width", x.bandwidth())
-      .attr("height", (d) => height - y(d.value))
-      .attr("fill", (d) => {
-        if (d.category === "White") return "#FFFFFF";
-        if (d.category === "Black") return "#000000";
-        return "#808080";
-      })
-      .attr("stroke", "#000");
-
-    svg
-      .append("g")
-      .attr("transform", "translate(0," + height + ")")
-      .call(d3.axisBottom(x).ticks(0));
-
-    svg.append("g").call(d3.axisLeft(y).ticks(15));
-
-    svg.append("text")
-      .attr("x", width / 2)
-      .attr("y", -margin.top / 2)
-      .attr("text-anchor", "middle")
-      .style("font-size", "20px")
-      .style("font-weight", "bold")
-      .text("Game Winner Counts");
-  }
-
-  
-
-  
+  onMount(async () => {
+    try {
+      const response = await fetch("/games.csv"); 
+      const csvData = await response.text();
+      movesData = parseCSV(csvData);
+    } catch (error) {
+      console.error("Error loading CSV file:", error);
+    }
+  });
 </script>
 
 <style>
-  .chart {
-    margin: 30px 0;
-    width: 100%;
-  }
-
-  .bar {
-    transition: all 0.3s ease;
-  }
-
-  .bar:hover {
-    opacity: 0.7;
-  }
-
-  text {
-    font-size: 14px;
-    fill: #333;
-  }
-
-  .axis path,
-  .axis line {
-    fill: none;
-    shape-rendering: crispEdges;
-  }
-
-  .axis text {
-    font-size: 12px;
-  }
-
   button {
     padding: 10px 20px;
     font-size: 16px;
@@ -169,15 +114,29 @@
     background-color: #355f73;
   }
 </style>
+
 <h1>Visual analytics Project</h1>
 <div id="chart-container">
-  <div id="winner-chart" class="chart"></div>
-  <div id="opening-chart" class="chart"></div>
-  <div id="victory-chart" class="chart"></div>
-  
-
   <button on:click={() => goto('/visualanal/pie')}>Victory type Pie Chart</button>
-  
   <button on:click={() => goto('/visualanal/openings')}>Top openings Bar Chart</button>
   <button on:click={() => goto('/visualanal/winner')}>Winners Donut Chart</button>
 </div>
+
+<main>
+  <h1>Chess Moves Analysis</h1>
+  <div>
+    <label for="moves">Select White's first move:</label>
+    <select id="moves" bind:value={selectedMove} on:change={() => updateChart(selectedMove)}>
+      <option value="" disabled selected>Select a move</option>
+      {#if possibleWhiteMoves.length > 0}
+        {#each possibleWhiteMoves as move}
+          <option value={move}>{move}</option>
+        {/each}
+      {/if}
+    </select>
+  </div>
+
+  {#if selectedMove}
+    <canvas id="moveChart" width="400" height="200"></canvas>
+  {/if}
+</main>
