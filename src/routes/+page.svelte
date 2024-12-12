@@ -88,7 +88,7 @@
 
   onMount(async () => {
     try {
-      const response = await fetch("/games.csv"); 
+      const response = await fetch("./games.csv"); 
       const csvData = await response.text();
       movesData = parseCSV(csvData);
     } catch (error) {
