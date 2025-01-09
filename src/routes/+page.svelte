@@ -99,7 +99,7 @@
           {
             label: `Black's responses to ${whiteMove}`,
             data: Object.values(blackResponses),
-            backgroundColor: "rgba(75, 192, 192, 0.6)",
+            backgroundColor: "rgba(75, 191, 192, 0.6)",
             borderColor: "rgba(75, 192, 192, 1)",
             borderWidth: 1,
           },

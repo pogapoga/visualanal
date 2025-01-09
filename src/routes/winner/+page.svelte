@@ -6,7 +6,6 @@
   let winnerData = []; 
 
   onMount(async () => {
-    // Load the CSV data
     const response = await fetch('./games.csv');
     const rawData = await response.text();
     const parsedData = d3.csvParse(rawData);
