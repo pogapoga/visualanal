@@ -293,7 +293,6 @@
       </div>
 
       {#if selectedBlackMove}
-        <!-- Second chart for White's responses -->
         <div id="chart-container">
           <canvas id="moveChart2" width="400" height="200"></canvas>
         </div>
