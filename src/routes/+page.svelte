@@ -153,7 +153,6 @@
     background-color: #355f73;
   }
 
- 
   .main-container {
     display: flex;
     justify-content: space-between;
@@ -171,17 +170,26 @@
     max-width: 600px;
   }
 
+  .visualizations-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 80px;
+  }
+
   h1 {
     text-align: center;
   }
 </style>
 
 <main>
-  <h1>Visual Analytics Project</h1>
-  <VictoryTypePiechart />
-  <OpeningBarchart />
+  <h1>Visual Analytics Project  </h1>
+  <div class="visualizations-container">
+    <VictoryTypePiechart />
+    <OpeningBarchart />
+    <WinnerDonutChart />
+  </div>
+
   <h2>Winner side</h2>
-  <WinnerDonutChart />
 
   <div class="main-container">
     <div class="chess-container">

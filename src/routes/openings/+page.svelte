@@ -164,5 +164,5 @@
   }
 </style>
 
-<h1>Top 5 Chess Openings</h1>
+
 <div id="opening-chart" class="chart"></div>

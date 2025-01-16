@@ -96,8 +96,8 @@
 <style>
   .chart-container {
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: flex-start;
+    align-items: flex-start;
     margin: 20px;
     flex-direction: column;
   }
@@ -122,7 +122,7 @@
     opacity: 0.8;
   }
 </style>
-
+<h1>Winner donut</h1>
 <div class="chart-container">
   <div id="donut-chart"></div>
 </div>
