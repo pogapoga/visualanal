@@ -6,6 +6,7 @@
   import OpeningBarchart from './openings/+page.svelte';
   import WinnerDonutChart from './winner/+page.svelte';
   import TimeChart from './time/+page.svelte'
+  import Scatter from './scatter/+page.svelte'
 
   let movesData = [];
   let moveHistory = [];
@@ -238,7 +239,9 @@
   <div class="barchart-container">
     <TimeChart />
   </div>
-  <h2>Winner side</h2>
+
+  <Scatter/>
+
 
   <div class="main-container">
     <div class="chess-container">
