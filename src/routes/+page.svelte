@@ -5,6 +5,7 @@
   import VictoryTypePiechart from './pie/+page.svelte';
   import OpeningBarchart from './openings/+page.svelte';
   import WinnerDonutChart from './winner/+page.svelte';
+  import TimeChart from './time/+page.svelte'
 
   let movesData = [];
   let moveHistory = [];
@@ -234,6 +235,9 @@
     <OpeningBarchart />
   </div>
 
+  <div class="barchart-container">
+    <TimeChart />
+  </div>
   <h2>Winner side</h2>
 
   <div class="main-container">
