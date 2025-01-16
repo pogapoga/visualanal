@@ -133,8 +133,12 @@
   }
 
   canvas {
-    max-width: 100%;
-    height: auto;
+    width: 100%; /* Make the canvas fill the box but not exceed it */
+    height: auto; /* Keep the aspect ratio intact */
+    max-height: 300px; /* Limit height to prevent overflow */
+    max-width: 100%; /* Ensure the canvas does not exceed the box width */
+    display: block; /* Avoid any extra spacing below the canvas */
+    margin: 0 auto; /* Center canvas horizontally */
   }
 
   button {
@@ -172,21 +176,62 @@
 
   .visualizations-container {
     display: flex;
+    justify-content: space-between; 
+    gap: 20px; 
+    background-color: #f5f5f5; 
+    padding: 20px; 
+    border-radius: 10px; 
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+    margin-bottom: 20px; 
+  }
+
+  .visualization-box {
+    background-color: #fff; 
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+    flex: 1; 
+    min-width: 250px; 
+    display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    gap: 80px;
+    overflow: hidden; 
+  }
+
+  .barchart-container {
+    background-color: #f5f5f5; 
+    padding: 20px;
+    border-radius: 10px; 
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
   }
 
   h1 {
     text-align: center;
+    margin-bottom: 20px;
+  }
+
+  h2 {
+    text-align: center;
+    margin-top: 20px;
   }
 </style>
 
 <main>
-  <h1>Visual Analytics Project  </h1>
+  <h1>Visual Analytics Project</h1>
+
+  
   <div class="visualizations-container">
-    <VictoryTypePiechart />
+    <div class="visualization-box">
+      <VictoryTypePiechart />
+    </div>
+    <div class="visualization-box">
+      <WinnerDonutChart />
+    </div>
+  </div>
+
+
+  <div class="barchart-container">
     <OpeningBarchart />
-    <WinnerDonutChart />
   </div>
 
   <h2>Winner side</h2>
@@ -227,3 +272,4 @@
     </div>
   </div>
 </main>
+
