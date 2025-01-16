@@ -1,17 +1,14 @@
 <script>
-  import { goto } from '$app/navigation';
-  import { onMount } from "svelte";
-  import Chart from "chart.js/auto";
   import { Chess } from 'svelte-chess';
-  
-  
-  
+  import Chart from "chart.js/auto";
+  import { onMount } from "svelte";
+  import VictoryTypePiechart from './pie/+page.svelte';
+  import OpeningBarchart from './openings/+page.svelte';
+  import WinnerDonutChart from './winner/+page.svelte';
 
   let movesData = [];
-  let selectedWhiteMove = "";
-  let selectedBlackMove = "";
-  let moveHistory = [];  
-  let chartInstance;
+  let moveHistory = [];
+  let chartInstances = {};
   let chess;
 
   const possibleWhiteMoves = [
@@ -34,72 +31,38 @@
       });
   }
 
- 
-  function calculateBlackResponses(data, whiteMove) {
+  function calculateMoveResponses(data, moves, targetIndex) {
     const counts = {};
     data.forEach(game => {
       if (game.moves) {
-        const moves = game.moves.split(" ");
-        if (moves[0] === whiteMove && moves[1]) {
-          const blackMove = moves[1];
-          counts[blackMove] = (counts[blackMove] || 0) + 1;
+        const gameMoves = game.moves.split(" ");
+        if (moves.every((move, index) => move === gameMoves[index]) && gameMoves[targetIndex]) {
+          const responseMove = gameMoves[targetIndex];
+          counts[responseMove] = (counts[responseMove] || 0) + 1;
         }
       }
     });
     return counts;
   }
 
-  
-  function calculateWhiteResponses(data, whiteMove, blackMove) {
-    const counts = {};
-    data.forEach(game => {
-      if (game.moves) {
-        const moves = game.moves.split(" ");
-        if (moves[0] === whiteMove && moves[1] === blackMove && moves[2]) {
-          const whiteMoveResponse = moves[2];
-          counts[whiteMoveResponse] = (counts[whiteMoveResponse] || 0) + 1;
-        }
-      }
-    });
-    return counts;
-  }
-
-
-  function updateBlackResponsesChart(whiteMove) {
-  
-    if (chess) {
-      try {
-        chess.move(whiteMove);
-        moveHistory.push(whiteMove); 
-        selectedWhiteMove = whiteMove;  
-      } catch (error) {
-        console.error("Invalid move:", error);
-      }
-    }
-
- 
-    if (chartInstance) {
-      chartInstance.destroy();
-    }
-
-    const blackResponses = calculateBlackResponses(movesData, whiteMove);
-
-    const canvas = document.getElementById("moveChart1");
-    if (!canvas) {
-      console.error("Canvas element not found");
-      return;
-    }
-
+  function renderChart(canvasId, label, responses, onClickHandler) {
+    const canvas = document.getElementById(canvasId);
+    
     const ctx = canvas.getContext("2d");
-    chartInstance = new Chart(ctx, {
+
+    if (chartInstances[canvasId]) {
+      chartInstances[canvasId].destroy();
+    }
+
+    chartInstances[canvasId] = new Chart(ctx, {
       type: "bar",
       data: {
-        labels: Object.keys(blackResponses),
+        labels: Object.keys(responses),
         datasets: [
           {
-            label: `Black's responses to ${whiteMove}`,
-            data: Object.values(blackResponses),
-            backgroundColor: "rgba(75, 191, 192, 0.6)",
+            label,
+            data: Object.values(responses),
+            backgroundColor: "rgba(75, 192, 192, 0.6)",
             borderColor: "rgba(75, 192, 192, 1)",
             borderWidth: 1,
           },
@@ -112,80 +75,40 @@
           },
         },
         onClick: (event) => {
-          
-          const activePoints = chartInstance.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
+          const activePoints = chartInstances[canvasId].getElementsAtEventForMode(
+            event,
+            'nearest',
+            { intersect: true },
+            true
+          );
           if (activePoints.length > 0) {
-            const clickedBlackMove = Object.keys(blackResponses)[activePoints[0].index];  
-            updateWhiteResponsesChart(selectedWhiteMove, clickedBlackMove);  
+            const clickedMove = Object.keys(responses)[activePoints[0].index];
+            onClickHandler(clickedMove);
           }
         },
       },
     });
   }
 
- 
-  function updateWhiteResponsesChart(whiteMove, blackMove) {
+  function updateChart(moves, canvasId, label, targetIndex, onClickHandler) {
     if (chess) {
-      
       try {
-        chess.move(blackMove);
-        moveHistory.push(blackMove);  
-        selectedBlackMove = blackMove;  
+        chess.move(moves[moves.length - 1]);
+        moveHistory.push(moves[moves.length - 1]);
       } catch (error) {
         console.error("Invalid move:", error);
       }
     }
 
-    
-    const whiteResponses = calculateWhiteResponses(movesData, whiteMove, blackMove);
-
-    const canvas = document.getElementById("moveChart2");
-    if (!canvas) {
-      console.error("Canvas element not found");
-      return;
-    }
-
-    const ctx = canvas.getContext("2d");
-    chartInstance = new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: Object.keys(whiteResponses),
-        datasets: [
-          {
-            label: `White's responses to Black's ${blackMove}`,
-            data: Object.values(whiteResponses),
-            backgroundColor: "rgba(153, 102, 255, 0.6)",
-            borderColor: "rgba(153, 102, 255, 1)",
-            borderWidth: 1,
-          },
-        ],
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true,
-          },
-        },
-        onClick: (event) => {
-          const activePoints = chartInstance.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
-          if (activePoints.length > 0) {
-            const clickedWhiteMove = Object.keys(whiteResponses)[activePoints[0].index];  
-            updateChessBoard(clickedWhiteMove);  
-          }
-        },
-      },
-    });
+    const responses = calculateMoveResponses(movesData, moves, targetIndex);
+    renderChart(canvasId, label, responses, onClickHandler);
   }
 
-  function updateChessBoard(move) {
-    if (chess) {
-      try {
-        const moveResult = chess.move(move);
-        moveHistory.push(moveResult.san); 
-      } catch (error) {
-        console.error("Invalid move:", error);
-      }
-    }
+  function resetGame() {
+    if (chess) chess.reset();
+    moveHistory = [];
+    Object.values(chartInstances).forEach(instance => instance.destroy());
+    chartInstances = {};
   }
 
   onMount(async () => {
@@ -255,36 +178,32 @@
 
 <main>
   <h1>Visual Analytics Project</h1>
-  <h2>Chess Moves Analysis</h2>
+  <VictoryTypePiechart />
+  <OpeningBarchart />
+  <h2>Winner side</h2>
+  <WinnerDonutChart />
 
   <div class="main-container">
-   
     <div class="chess-container">
-      
-      <Chess bind:this={chess}/>
-      <button on:click={() => { 
-        chess?.reset(); 
-        moveHistory = []; 
-        selectedWhiteMove = ""; 
-        selectedBlackMove = ""; 
-        updateBlackResponsesChart(selectedWhiteMove); 
-      }}>Reset</button>
-      <button on:click={()=>chess?.undo()}>Undo</button>
-      <button on:click={()=>chess?.makeEngineMove()}>Make Best Move</button>
-      
+      <Chess bind:this={chess} />
+      <button on:click={resetGame}>Reset</button>
+      <button on:click={() => chess?.undo()}>Undo</button>
+      <button on:click={() => chess?.makeEngineMove()}>Make Best Move</button>
     </div>
 
-    <!-- Chart container -->
     <div class="chart-container">
-      {#if selectedWhiteMove}
-        <div id="chart-container">
-          <canvas id="moveChart1" width="400" height="200"></canvas>
-        </div>
-      {/if}
-
       <div style="max-width: 512px;">
         <label for="moves">Select White's first move:</label>
-        <select id="moves" bind:value={selectedWhiteMove} on:change={() => updateBlackResponsesChart(selectedWhiteMove)}>
+        <select
+          id="moves"
+          on:change={(e) =>
+            updateChart([e.target.value], "moveChart1", `Black's responses to ${e.target.value}`, 1, (clickedMove) => {
+              updateChart([e.target.value, clickedMove], "moveChart2", `White's responses to ${clickedMove}`, 2, (clickedMove2) => {
+                updateChart([e.target.value, clickedMove, clickedMove2], "moveChart3", `Black's responses to ${clickedMove2}`, 3, () => {});
+              });
+            })
+          }
+        >
           <option value="" disabled selected>Select a move</option>
           {#each possibleWhiteMoves as move}
             <option value={move}>{move}</option>
@@ -292,17 +211,11 @@
         </select>
       </div>
 
-      {#if selectedBlackMove}
-        <div id="chart-container">
-          <canvas id="moveChart2" width="400" height="200"></canvas>
-        </div>
-      {/if}
+      <div id="chart-container">
+        <canvas id="moveChart1" width="400" height="200"></canvas>
+        <canvas id="moveChart2" width="400" height="200"></canvas>
+        <canvas id="moveChart3" width="400" height="200"></canvas>
+      </div>
     </div>
-  </div>
-
-  <div id="chart-container">
-    <button on:click={() => goto('/visualanal/pie')}>Victory type Pie Chart</button>
-    <button on:click={() => goto('/visualanal/openings')}>Top openings Bar Chart</button>
-    <button on:click={() => goto('/visualanal/winner')}>Winners Donut Chart</button>
   </div>
 </main>

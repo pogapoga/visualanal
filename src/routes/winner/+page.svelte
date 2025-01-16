@@ -1,7 +1,6 @@
 <script>
   import * as d3 from "d3";
   import { onMount } from "svelte";
-  import { goto } from '$app/navigation';
 
   let winnerData = []; 
 
@@ -126,5 +125,4 @@
 
 <div class="chart-container">
   <div id="donut-chart"></div>
-  <button on:click={() => goto('/visualanal/')}>Back</button>
 </div>

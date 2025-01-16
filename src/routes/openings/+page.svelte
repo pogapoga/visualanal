@@ -1,3 +1,4 @@
+
 <script>
   import * as d3 from "d3";
   import { onMount } from "svelte";
@@ -165,4 +166,3 @@
 
 <h1>Top 5 Chess Openings</h1>
 <div id="opening-chart" class="chart"></div>
-<button on:click={() => goto('/visualanal/')}>Back</button>
