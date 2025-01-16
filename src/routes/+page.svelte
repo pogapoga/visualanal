@@ -133,12 +133,12 @@
   }
 
   canvas {
-    width: 100%; /* Make the canvas fill the box but not exceed it */
-    height: auto; /* Keep the aspect ratio intact */
-    max-height: 300px; /* Limit height to prevent overflow */
-    max-width: 100%; /* Ensure the canvas does not exceed the box width */
-    display: block; /* Avoid any extra spacing below the canvas */
-    margin: 0 auto; /* Center canvas horizontally */
+    width: 100%;
+    height: auto; 
+    max-height: 300px; 
+    max-width: 100%; 
+    display: block; 
+    margin: 0 auto; 
   }
 
   button {
