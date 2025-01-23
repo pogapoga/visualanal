@@ -41,7 +41,7 @@
 
   function drawBarChart(categories) {
     const margin = { top: 20, right: 30, bottom: 40, left: 100 };
-    const width = 500 - margin.left - margin.right;
+    const width = 400 - margin.left - margin.right;
     const height = 300 - margin.top - margin.bottom;
 
     const svg = d3
@@ -112,22 +112,7 @@
 </script>
 
 <style>
-  svg {
-    display: block;
-    margin: 0 auto;
-  }
 
-  .bar {
-    transition: all 0.3s ease;
-  }
-
-  .bar:hover {
-    opacity: 0.8;
-  }
-
-  .tooltip {
-    pointer-events: none;
-  }
 </style>
 
 

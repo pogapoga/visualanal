@@ -178,7 +178,7 @@ function updateChart(canvasId, label, responses) {
     margin: 0 auto;
     background-color: #fff;
     border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0px 0px rgba(0, 0, 0, 0.1);
   }
 
   
@@ -194,7 +194,7 @@ function updateChart(canvasId, label, responses) {
   .visualization-box {
     width: 400px; 
     height: 250px; 
-    background-color: transparent; /* Make each box transparent */
+    background-color: transparent;
     padding: 0; 
     border-radius: 8px; 
     box-shadow: none; 
@@ -229,12 +229,12 @@ function updateChart(canvasId, label, responses) {
     padding: 20px;
     background-color: #f9fafb;
     border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0px 0px rgba(0, 0, 0, 0.1);
   }
 
   .winner-line {
     position: absolute; 
-    top: 490px; 
+    top: 500px; 
     left: 30px;
     font-size: 20px; 
     color: #000000; 
@@ -268,7 +268,7 @@ function updateChart(canvasId, label, responses) {
     color: #4A5568;
   }
 
-  /* Select styles */
+ 
   select {
     padding: 10px;
     font-size: 16px;
@@ -292,43 +292,43 @@ function updateChart(canvasId, label, responses) {
 
   .visualization-box:hover .chart-container {
     transform: scale(1.2); 
-    transition: transform 0.8s ease; /* Smooth transition */
+    transition: transform 0.8s ease;
   }
   .hoverable-container {
     width: 400px; 
     height: 250px; 
     background-color: transparent; 
     border-radius: 8px; 
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
+    box-shadow: 0 0px 0px rgba(0, 0, 0, 0.1); 
     transition: all 0.3s ease; 
     position: absolute;
-    right: 60px; 
+    right: 40px; 
     top: 80px;
     padding: 10px;
   }
 
   .hoverable-container:hover {
-    width: 500px; /* Increase size on hover */
-    height: 300px; /* Increase height on hover */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* Larger shadow on hover */
+    width: 500px; 
+    height: 300px; 
+    box-shadow: 0 0px rgba(0, 0, 0, 0.2); /* Larger shadow on hover */
   }
   .hoverable-container-two {
     width: 400px; 
     height: 250px; 
     background-color: transparent; 
     border-radius: 8px; 
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Slight shadow */
-    transition: all 0.3s ease; /* Smooth transition on hover */
+    box-shadow: 0 0px 0 rgba(0, 0, 0, 0.1); 
+    transition: all 0.3s ease; 
     position: absolute;
-    right: 140px; /* Same right alignment */
-    top: 380px; /* Adjust top to position below the first container */
+    right: 10px; 
+    top: 380px; 
     padding: 10px;
   }
 
   .hoverable-container-two:hover {
-    width: 500px; /* Increase size on hover */
-    height: 300px; /* Increase height on hover */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* Larger shadow on hover */
+    width: 500px; 
+    height: 300px; 
+    box-shadow: 0 0x 0px rgba(0, 0, 0, 0.2);
   }
 
 .main-container {
@@ -336,25 +336,24 @@ function updateChart(canvasId, label, responses) {
     gap: 20px; 
   }
 
-  /* Chess container styling */
+  
   .chess-container {
-    width: 2%; /* Make it take up half the space */
+    width: 2%; 
     background-color: #f9fafb;
     padding: 20px;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
 
-  /* Chart container styling */
   .chart-container {
-    width: 35%; /* Make it take up half the space */
-    background-color: #f9fafb;
+    width: 35%; 
+    background-color: transparent;
     padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 8px rgba(0, 0, 0, 0.1);
   }
 
-  /* Canvas styling */
+
   #chart-container {
     display: block;
   }
@@ -368,10 +367,10 @@ function updateChart(canvasId, label, responses) {
 <main>
   <div class="visualizations-container">
     <div class="visualization-box">
-      <div class="chart-container">
+      
      
         <VictoryTypePiechart />
-      </div>
+      
       <p class="pie-line">Victory type Pie Chart</p>
     </div>
     <div class="visualization-box">
@@ -425,7 +424,7 @@ function updateChart(canvasId, label, responses) {
       </div>
 
       <div id="chart-container" style="display: {isChartVisible ? 'block' : 'none'};">
-        <canvas id="moveChart1" width="100" height="100"></canvas>
+        <canvas id="moveChart1" width="200" height="200"></canvas>
       </div>
     </div>
   </div>
