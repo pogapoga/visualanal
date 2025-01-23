@@ -33,8 +33,8 @@
 
   
   function drawDonutChart(data) {
-    const width = 400;
-    const height = 400;
+    const width = 250;
+    const height = 250;
     const margin = 50;
     const radius = Math.min(width, height) / 2 - margin;
 
@@ -94,35 +94,21 @@
 </script>
 
 <style>
-  .chart-container {
-    display: flex;
-    justify-content: flex-start;
-    align-items: flex-start;
-    margin: 20px;
-    flex-direction: column;
+  /* Make the chart smaller and adjust its position */
+  #donut-chart {
+    width: 250px; /* Set a smaller width for the donut chart */
+    height: 250px; /* Set a smaller height for the donut chart */
+    margin: 0 auto; /* Center the chart horizontally */
   }
 
-  button {
-    margin-top: 20px;
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: #4682B4;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-
-  button:hover {
-    background-color: #355f73;
-  }
-
-  path:hover {
-    opacity: 0.8;
+  /* Make the heading text smaller and position it under the donut chart */
+  h1 {
+    font-size: 14px; /* Smaller text size */
+    text-align: center; /* Center the text */
+    margin-top: 10px; /* Add space between the chart and the text */
   }
 </style>
-<h1>Winner donut</h1>
-<div class="chart-container">
-  <div id="donut-chart"></div>
-</div>
+
+
+
+<div id="donut-chart"></div>

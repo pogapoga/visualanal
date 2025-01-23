@@ -41,7 +41,7 @@
 
   function drawBarChart(categories) {
     const margin = { top: 20, right: 30, bottom: 40, left: 100 };
-    const width = 600 - margin.left - margin.right;
+    const width = 500 - margin.left - margin.right;
     const height = 300 - margin.top - margin.bottom;
 
     const svg = d3
@@ -130,5 +130,5 @@
   }
 </style>
 
-<h1>Game Time Control Distribution</h1>
+
 <div id="category-bar-chart"></div>

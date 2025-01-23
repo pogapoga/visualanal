@@ -2,7 +2,7 @@
 <script>
   import * as d3 from "d3";
   import { onMount } from "svelte";
-  import { goto } from '$app/navigation'; 
+
   
   let data = []; 
   let topOpenings = [];
@@ -37,8 +37,8 @@
   
   function drawOpeningChart(topOpenings) {
     const margin = { top: 40, right: 30, bottom: 60, left: 50 };
-    const width = 900 - margin.left - margin.right;
-    const height = 600 - margin.top - margin.bottom;
+    const width = 500 - margin.left - margin.right;
+    const height = 300 - margin.top - margin.bottom;
   
     const svg = d3
       .select("#opening-chart")
@@ -106,14 +106,7 @@
   
     svg.append("g").call(d3.axisLeft(y).ticks(5));
   
-    svg
-      .append("text")
-      .attr("x", width / 2)
-      .attr("y", -margin.top / 2)
-      .attr("text-anchor", "middle")
-      .style("font-size", "20px")
-      .style("font-weight", "bold")
-      .text("Top 5 Chess Openings");
+    
   }
 </script>
 
@@ -123,45 +116,6 @@
     width: 100%;
   }
 
-  .bar {
-    transition: all 0.3s ease;
-    cursor: pointer;
-  }
-
-  .bar:hover {
-    opacity: 0.7;
-  }
-
-  text {
-    font-size: 14px;
-    fill: #333;
-  }
-
-  .axis path,
-  .axis line {
-    fill: none;
-    shape-rendering: crispEdges;
-  }
-
-  .axis text {
-    font-size: 12px;
-  }
-
-  button {
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 20px;
-    background-color: #4682B4;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    transition: background-color 0.3s;
-  }
-
-  button:hover {
-    background-color: #355f73;
-  }
 </style>
 
 

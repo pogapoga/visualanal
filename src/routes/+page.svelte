@@ -151,50 +151,66 @@ function updateChart(canvasId, label, responses) {
 
 
 <style>
-  body {
-    margin: 0;
-    padding: 0;
-    background: linear-gradient(to bottom, #4A90E2, #4682B4); /* Blue gradient background */
-    min-height: 100vh; 
-    font-family: 'Arial', sans-serif; 
+
+
+  header {
+    background-color: #f4f4f4;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 2px solid #ddd;
   }
 
-  
+  header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: #333;
+  }
+
+  header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #666;
+  }
+
   main {
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
-    background-color: #fff; 
+    background-color: #fff;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
+
   
-  #chart-container {
-    max-width: 600px;
-    margin: 20px;
-    padding: 20px;
-    border-radius: 12px;
-    background-color: #fff;
-    border: 1px solid #e5e7eb; /* Lighter border color */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  .visualizations-container {
+    position: absolute;
+    top: 80px; 
+    left: 0px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: transparent; 
+  }
+  .visualization-box {
+    width: 400px; 
+    height: 250px; 
+    background-color: transparent; /* Make each box transparent */
+    padding: 0; 
+    border-radius: 8px; 
+    box-shadow: none; 
+    display: flex;
+    justify-content: left;
+    align-items: left;
+    overflow: hidden; 
   }
 
-  canvas {
-    width: 100%;
-    height: auto;
-    max-height: 300px;
-    max-width: 100%;
-    display: block;
-    margin: 0 auto;
-  }
 
-  /* Button styles */
   button {
     padding: 12px 24px;
     font-size: 16px;
     cursor: pointer;
     margin-top: 20px;
-    background-color: #4CAF50; /* Greenish color */
+    background-color: #4CAF50;
     color: white;
     border: none;
     border-radius: 8px;
@@ -202,79 +218,47 @@ function updateChart(canvasId, label, responses) {
   }
 
   button:hover {
-    background-color: #45a049; /* Slightly darker green */
-    transform: scale(1.05); /* Slight scaling effect */
+    background-color: #45a049;
+    transform: scale(1.05);
   }
 
-  /* Layout styling for the main container */
-  .main-container {
-    display: flex;
-    flex-wrap: wrap; /* Makes it responsive */
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 20px;
-  }
 
-  /* Chess container with shadow and margin */
   .chess-container {
     flex: 1;
-    max-width: 512px;
+    max-width: 500px;
     padding: 20px;
     background-color: #f9fafb;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
 
-  /* Chart container styling */
+  .winner-line {
+    position: absolute; 
+    top: 490px; 
+    left: 30px;
+    font-size: 20px; 
+    color: #000000; 
+    font-family: Arial, sans-serif; 
+  }
+  .pie-line {
+    position: absolute; 
+    top: 190px; 
+    left: 30px;
+    font-size: 20px; 
+    color: #000000; 
+    font-family: Arial, sans-serif; 
+  }
   .chart-container {
-    flex: 1;
-    max-width: 600px;
-    padding: 20px;
-    background-color: #f9fafb;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: transparent; /* Make chart container transparent */
+    padding: 0; /* No padding */
+    margin: 0; /* No margin */
   }
 
-  /* Section for visualizations with spacing and soft shadows */
-  .visualizations-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    background-color: #f9fafb;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-  }
-
-  /* Individual visualization boxes with soft borders */
-  .visualization-box {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    flex: 1;
-    min-width: 250px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    text-align: center;
-  }
-
-  /* Bar chart container style */
-  .barchart-container {
-    background-color: #f9fafb;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  /* Heading styles */
   h1 {
     text-align: center;
     margin-bottom: 20px;
-    font-size: 2rem; /* Larger font size */
-    color: #2d3748; /* Darker shade of text */
+    font-size: 2rem;
+    color: #2d3748;
   }
 
   h2 {
@@ -284,7 +268,7 @@ function updateChart(canvasId, label, responses) {
     color: #4A5568;
   }
 
- 
+  /* Select styles */
   select {
     padding: 10px;
     font-size: 16px;
@@ -296,85 +280,153 @@ function updateChart(canvasId, label, responses) {
     background-color: #fff;
   }
 
- 
   select:focus {
     outline: none;
     border-color: #56c55a;
   }
+  .visualization-box:hover {
+    transform: scale(1.2);
+    transition: transform 0.8s ease; 
+  }
+
+
+  .visualization-box:hover .chart-container {
+    transform: scale(1.2); 
+    transition: transform 0.8s ease; /* Smooth transition */
+  }
+  .hoverable-container {
+    width: 400px; 
+    height: 250px; 
+    background-color: transparent; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
+    transition: all 0.3s ease; 
+    position: absolute;
+    right: 60px; 
+    top: 80px;
+    padding: 10px;
+  }
+
+  .hoverable-container:hover {
+    width: 500px; /* Increase size on hover */
+    height: 300px; /* Increase height on hover */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* Larger shadow on hover */
+  }
+  .hoverable-container-two {
+    width: 400px; 
+    height: 250px; 
+    background-color: transparent; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Slight shadow */
+    transition: all 0.3s ease; /* Smooth transition on hover */
+    position: absolute;
+    right: 140px; /* Same right alignment */
+    top: 380px; /* Adjust top to position below the first container */
+    padding: 10px;
+  }
+
+  .hoverable-container-two:hover {
+    width: 500px; /* Increase size on hover */
+    height: 300px; /* Increase height on hover */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* Larger shadow on hover */
+  }
+
+.main-container {
+    display: flex; 
+    gap: 20px; 
+  }
+
+  /* Chess container styling */
+  .chess-container {
+    width: 2%; /* Make it take up half the space */
+    background-color: #f9fafb;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Chart container styling */
+  .chart-container {
+    width: 35%; /* Make it take up half the space */
+    background-color: #f9fafb;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Canvas styling */
+  #chart-container {
+    display: block;
+  }
 </style>
 
+<header>
+  <h1>VISUAL ANALYTICS PROJECT SS 2025</h1>
+  <h2>Chess Opening Analysis</h2>
+</header>
+
 <main>
-
-  <div class="bg-gradient-to-r from-blue-500 to-teal-400 text-white p-4 rounded-lg">
-    <h1>Welcome to my SvelteKit app!</h1>
-  </div>
-
-
-  <h1>Visual Analytics Project</h1>
-
-  <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-4 rounded-lg">
-    Your content looks better now!
-  </div>
-
- 
-  <button class="btn btn-primary">Click Me</button>
-
-
   <div class="visualizations-container">
     <div class="visualization-box">
-      <VictoryTypePiechart />
+      <div class="chart-container">
+     
+        <VictoryTypePiechart />
+      </div>
+      <p class="pie-line">Victory type Pie Chart</p>
     </div>
     <div class="visualization-box">
-      <WinnerDonutChart />
+      <div class="chart-container">
+       
+        <WinnerDonutChart />
+      </div>
+      
     </div>
+    <p class="winner-line">Winners by color</p>
   </div>
 
-  
-  <div class="barchart-container">
+  <div class="hoverable-container">
     <OpeningBarchart />
   </div>
 
-  <div class="barchart-container">
+  <div class="hoverable-container-two">
     <TimeChart />
   </div>
 
-  <Scatter />
-
   
+
+
+
   <div class="main-container">
-   
     <div class="chess-container">
       <Chess bind:this={chess} />
       <button on:click={resetGame}>Reset</button>
       <button on:click={() => chess?.undo()}>Undo</button>
-      
     </div>
+
     <div class="chart-container">
       <div style="max-width: 512px;">
         <label for="moves">Select White's first move:</label>
         <select
-  id="moves"
-  bind:value={selectedStartMove}
-  on:change={() => {
-    if (selectedStartMove) {
-      selectedMoves = [selectedStartMove]; // Start with the selected move
-      const responses = calculateResponses(movesData, selectedMoves);
-      renderChart("moveChart1", `Responses to ${selectedStartMove}`, responses);
-    }
-  }}
->
-  <option value="" disabled selected>Select a move</option>
-  {#each possibleWhiteMoves as move}
-    <option value={move}>{move}</option>
-  {/each}
-</select>
+          id="moves"
+          bind:value={selectedStartMove}
+          on:change={() => {
+            if (selectedStartMove) {
+              selectedMoves = [selectedStartMove];
+              const responses = calculateResponses(movesData, selectedMoves);
+              renderChart("moveChart1", `Responses to ${selectedStartMove}`, responses);
+            }
+          }}
+        >
+          <option value="" disabled selected>Select a move</option>
+          {#each possibleWhiteMoves as move}
+            <option value={move}>{move}</option>
+          {/each}
+        </select>
       </div>
 
       <div id="chart-container" style="display: {isChartVisible ? 'block' : 'none'};">
-        <canvas id="moveChart1" width="400" height="200"></canvas>
-        
+        <canvas id="moveChart1" width="100" height="100"></canvas>
       </div>
-      
     </div>
   </div>
 </main>

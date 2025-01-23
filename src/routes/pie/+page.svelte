@@ -1,7 +1,6 @@
 <script>
   import * as d3 from "d3";
   import { onMount } from "svelte";
-  import { goto } from '$app/navigation'; 
 
   let victoryTypes = [];
 
@@ -27,8 +26,8 @@
   }
 
   function drawVictoryPieChart(victoryTypes) {
-    const width = 500;
-    const height = 500;
+    const width = 270;
+    const height = 260;
     const radius = Math.min(width, height) / 3;
 
     const color = d3
@@ -91,32 +90,11 @@
 </script>
 
 <style>
-  svg {
-    display: block;
-    margin: 0 auto;
-  }
-  
-  button {
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 20px;
-    background-color: #4682B4;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    transition: background-color 0.3s;
-  }
 
-  button:hover {
-    background-color: #355f73;
-  }
+  
 </style>
 
-
-  <h1>Victory Types Pie Chart</h1>
   <div id="victory-pie-chart">
     
-
   </div>
   
