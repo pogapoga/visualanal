@@ -1,9 +1,10 @@
+// tailwind.config.js
 module.exports = {
-  content: ['./src/**/*.{html,js,svelte,ts}'],
+  content: [
+    './src/**/*.svelte', // Adjust this to your SvelteKit structure
+  ],
   theme: {
     extend: {},
   },
-  plugins: [
-    require('daisyui'),
-  ],
-};
+  plugins: [require('daisyui')],
+}
