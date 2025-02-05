@@ -7,10 +7,11 @@
   
   
   
+  
   let winChartInstance = null;
   let ratedChartInstance = null;
   let victoryStatusChartInstance = null;
-  let openings = []; // This will hold the unique openings
+  let openings = []; 
   let selectedOpening = ""; 
   let movesData = [];
   let chess;
@@ -141,7 +142,10 @@ function updateChessBoard() {
           },
         ],
       },
-      options: {
+      options: {animation: {
+  duration: 1000,
+  delay: (context) => context.dataIndex * 200, 
+},
         responsive: false,
         scales: {
           x: {
@@ -195,24 +199,21 @@ function updateRatedChart(canvasId, gamesData, selectedMoves = []) {
   const canvas = document.getElementById(canvasId);
   const ctx = canvas.getContext("2d");
 
-  // Calculate the rated and unrated counts based on the selected moves
+  
   const ratedCounts = { Rated: 0, Unrated: 0 };
 
-  // Loop through the games data and count rated/unrated games
   gamesData.forEach((game) => {
     if (game.rated) {
       const gameMoves = game.moves.split(" ");
       if (selectedMoves.every((move, index) => move === gameMoves[index])) {
-        if (game.rated === "TRUE") {
+        if (game.rated === "TRUE" || game.rated === "True") {
           ratedCounts.Rated++;
-        } else if (game.rated === "FALSE") {
+        } else if (game.rated === "FALSE" || "False") {
           ratedCounts.Unrated++;
         }
       }
     }
   });
-
-  // If the chart is not initialized, create a new one
   if (!ratedChartInstance) {
     ratedChartInstance = new Chart(ctx, {
       type: "pie",
@@ -226,7 +227,10 @@ function updateRatedChart(canvasId, gamesData, selectedMoves = []) {
           },
         ],
       },
-      options: {
+      options: {animation: {animateScale: true,
+        duration: 3000,
+        easing: "easeOutBounce",
+      },
         responsive: false,
         plugins: {
           legend: {
@@ -296,7 +300,10 @@ function updateTimeCategoryChart(canvasId, gamesData, selectedMoves = []) {
           },
         ],
       },
-      options: {
+      options: {animation: {animateScale: true,
+        duration: 3000,
+        easing: "easeOutBounce",
+      },
         responsive: false,
         plugins: {
           legend: {
@@ -322,26 +329,21 @@ function updateWhiteRatingChart(canvasId, gamesData, selectedMoves = []) {
   const canvas = document.getElementById(canvasId);
   const ctx = canvas.getContext("2d");
 
-  // Initialize counters for the rating categories
   const ratingCategories = {
-    LessThan1000: 0,
     From1000To1500: 0,
     From1500To2000: 0,
     MoreThan2000: 0,
   };
 
-  // Loop through the games data and classify them based on white player rating
+
   gamesData.forEach((game) => {
     if (game.moves) {
       const gameMoves = game.moves.split(" ");
-      
-      // Check if the game's moves start with the selected moves
+
       if (selectedMoves.every((move, index) => move === gameMoves[index])) {
         if (game.white_rating) {
           const whiteRating = parseInt(game.white_rating);
-
-          // Classify based on the rating
-          if (whiteRating >= 1000 && whiteRating < 1500) {
+          if (whiteRating < 1500) {
             ratingCategories.From1000To1500++;
           } else if (whiteRating >= 1500 && whiteRating < 2000) {
             ratingCategories.From1500To2000++;
@@ -353,9 +355,8 @@ function updateWhiteRatingChart(canvasId, gamesData, selectedMoves = []) {
     }
   });
 
-  console.log("White Rating Categories Calculated:", ratingCategories); // Debugging log
+  console.log("White Rating Categories Calculated:", ratingCategories); 
 
-  // If the chart is not initialized, create a new one
   if (!whiteRatingChartInstance) {
     whiteRatingChartInstance = new Chart(ctx, {
       type: "pie",
@@ -369,18 +370,21 @@ function updateWhiteRatingChart(canvasId, gamesData, selectedMoves = []) {
         datasets: [
           {
             data: [
-              ratingCategories.LessThan1000,
               ratingCategories.From1000To1500,
               ratingCategories.From1500To2000,
               ratingCategories.MoreThan2000,
             ],
-            backgroundColor: ["#E1F8F7", "#4BC0C0", "#3D9B9B", "#2A7A7A"],
+            backgroundColor: ["#E1F8F7", "#4BC0C0", "#3D9B9B"],
 
             borderWidth: 1,
           },
         ],
       },
       options: {
+        animation: {animateScale: true,
+        duration: 3000,
+        easing: "easeOutBounce",
+      },
         responsive: false,
         plugins: {
           legend: {
@@ -390,7 +394,6 @@ function updateWhiteRatingChart(canvasId, gamesData, selectedMoves = []) {
       },
     });
   } else {
-    // If the chart is already initialized, just update it with new data
     whiteRatingChartInstance.data.datasets[0].data = [
       ratingCategories.LessThan1000,
       ratingCategories.From1000To1500,
@@ -405,55 +408,56 @@ function updateTurnsCategoryChart(canvasId, gamesData, selectedMoves = []) {
   const canvas = document.getElementById(canvasId);
   const ctx = canvas.getContext("2d");
 
-  // Initialize counters for the turns categories
-  const turnsCategories = { LessThan15: 0, Between15And30: 0, Between30And45: 0, MoreThan45: 0 };
 
-  // Loop through the games data and classify them based on the number of turns
+  const turnsCategories = { LessThan20: 0, Between20And40: 0, Between40And60: 0, MoreThan60: 0 };
+
   gamesData.forEach((game) => {
     if (game.moves) {
       const gameMoves = game.moves.split(" ");
 
-      // Check if the game's moves start with the selected moves
+    
       if (selectedMoves.every((move, index) => move === gameMoves[index])) {
-        // Use the 'turns' data directly
+
         const numberOfTurns = game.turns;
 
-        // Classify based on the number of turns
-        if (numberOfTurns < 15) {
-          turnsCategories.LessThan15++;
-        } else if (numberOfTurns >= 15 && numberOfTurns <= 30) {
-          turnsCategories.Between15And30++;
-        } else if (numberOfTurns > 30 && numberOfTurns <= 45) {
-          turnsCategories.Between30And45++;
-        } else if (numberOfTurns > 45) {
-          turnsCategories.MoreThan45++;
+
+        if (numberOfTurns < 20) {
+          turnsCategories.LessThan20++;
+        } else if (numberOfTurns >= 20 && numberOfTurns <= 40) {
+          turnsCategories.Between20And40++;
+        } else if (numberOfTurns > 40 && numberOfTurns <= 60) {
+          turnsCategories.Between40And60++;
+        } else if (numberOfTurns > 60) {
+          turnsCategories.MoreThan60++;
         }
       }
     }
   });
 
-  console.log("Turns Categories Calculated:", turnsCategories); // Debugging log
+  console.log("Turns Categories Calculated:", turnsCategories); 
 
-  // If the chart is not initialized, create a new one
   if (!turnsCategoryChartInstance) {
     turnsCategoryChartInstance = new Chart(ctx, {
       type: "pie",
       data: {
-        labels: ["<15 Turns", "15-30 Turns", "30-45 Turns", ">45 Turns"],
+        labels: ["<20 Turns", "20-40 Turns", "40-60 Turns", ">60 Turns"],
         datasets: [
           {
             data: [
-              turnsCategories.LessThan15,
-              turnsCategories.Between15And30,
-              turnsCategories.Between30And45,
-              turnsCategories.MoreThan45,
+              turnsCategories.LessThan20,
+              turnsCategories.Between20And40,
+              turnsCategories.Between40And60,
+              turnsCategories.MoreThan60,
             ],
             backgroundColor: ["#E1F8F7", "#4BC0C0", "#3D9B9B", "#2A7A7A"], // Adjust the colors as needed
             borderWidth: 1,
           },
         ],
       },
-      options: {
+      options: {animation: {animateScale: true,
+        duration: 3000,
+        easing: "easeOutBounce",
+      },
         responsive: false,
         plugins: {
           legend: {
@@ -463,12 +467,12 @@ function updateTurnsCategoryChart(canvasId, gamesData, selectedMoves = []) {
       },
     });
   } else {
-    // If the chart is already initialized, just update it with new data
+    
     turnsCategoryChartInstance.data.datasets[0].data = [
-      turnsCategories.LessThan15,
-      turnsCategories.Between15And30,
-      turnsCategories.Between30And45,
-      turnsCategories.MoreThan45,
+      turnsCategories.LessThan20,
+      turnsCategories.Between20And40,
+      turnsCategories.Between40And60,
+      turnsCategories.MoreThan60,
     ];
     turnsCategoryChartInstance.update();
   }
@@ -513,7 +517,10 @@ function updateVictoryStatusChart(canvasId, gamesData, selectedMoves) {
           },
         ],
       },
-      options: {
+      options: {animation: {animateScale: true,
+        duration: 3000,
+        easing: "easeOutBounce",
+      },
         responsive: false,
       maintainAspectRatio: false,  // This makes it easier to control size
       plugins: { legend: { display: true } },
@@ -596,7 +603,10 @@ function updateVictoryStatusChart(canvasId, gamesData, selectedMoves) {
           },
         ],
       },
-      options: {
+      options: {animation: {animateScale: true,
+        duration: 3000,
+        easing: "easeOutBounce",
+      },
         responsive: false,
         plugins: {
           legend: {
@@ -683,7 +693,7 @@ onMount(async () => {
   height: 200px; 
 }
   header {
-    background-color: #f4f4f4;
+    background-color: #edf9ff;
     padding: 20px;
     text-align: center;
     border-bottom: 2px solid #ddd;
@@ -729,7 +739,7 @@ onMount(async () => {
     font-size: 16px;
     cursor: pointer;
     margin-top: 20px;
-    background-color: #4BC0C0;
+    background-color: rgb(138, 216, 207);
     color: white;
     border: none;
     border-radius: 8px;
@@ -793,10 +803,10 @@ onMount(async () => {
 
 .chess-container {
     width: 600px; 
-    background-color: #f9fafb;
+  
     padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0px 0px rgba(72, 162, 211, 0.1);
 }
 #victoryStatusChartContainer {
   position: absolute;
@@ -832,6 +842,7 @@ onMount(async () => {
 }
   #chart-container {
     display: block;
+    
   }
 </style>
 
@@ -841,6 +852,7 @@ onMount(async () => {
 </header>
 
 <main>
+  <link rel="stylesheet" href="/stylepaper.css" />
   <div class="pie-chart-container" id="victoryStatusChartContainer">
     <div class="visualization-box">
       <canvas id="victoryStatusChart"></canvas>
@@ -885,12 +897,18 @@ onMount(async () => {
 
     <div>
       <label for="opening-select">Select an Opening:</label>
-      <select id="opening-select" bind:value={selectedOpening} on:change={() => handleOpeningSelection(selectedOpening)}>
-        <option value="">Select Opening</option>
-        {#each openings as opening}
-          <option value={opening}>{opening}</option>
-        {/each}
-      </select>
+      <select id="opening-select"
+        bind:value={selectedOpening}
+        on:change={() => handleOpeningSelection(selectedOpening)}
+        class="p-3 text-lg rounded-lg border border-gray-300 w-full max-w-md mt-5 bg-white 
+               focus:outline-none focus:border-green-500 transition-all duration-200 
+               hover:shadow-lg focus:shadow-[0_0_10px_rgba(56,201,56,0.5)] focus:scale-100">
+  <option value="">Select Opening</option>
+  {#each openings as opening}
+    <option value={opening}>{opening}</option>
+  {/each}
+</select>
+
       <div id="chart-container" style="display: {isChartVisible ? 'block' : 'none'};">
         <canvas id="moveChart1" width="580" height="580"></canvas>
       </div>
