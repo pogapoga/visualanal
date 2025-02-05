@@ -4,24 +4,21 @@
   import { Chess } from 'svelte-chess';
   import Chart from "chart.js/auto";
   import { onMount } from "svelte";
-  import VictoryTypePiechart from './pie/+page.svelte';
   import TimeChart from './time/+page.svelte';
   
   let winChartInstance = null;
+  let ratedChartInstance = null;
   let victoryStatusChartInstance = null;
+  let openings = []; // This will hold the unique openings
+  let selectedOpening = ""; 
   let movesData = [];
   let chess;
   let chartInstance = null;
   let selectedMoves = [];
-  let selectedStartMove = "";
   let isChartVisible = false;
   let topOpenings = [];
+  let timeCategoryChartInstance = null;
 
-  const possibleWhiteMoves = [
-    "e4", "d4", "Nf3", "c4", "e3", "g3", "f4", "b3", "a3", 
-    "h3", "Nc3", "Nf3", "Nh3", "b4", "d3", "f3", "g4", "Nf3",
-    "c3",
-  ];
 
   function parseCSV(data) {
     const rows = data.split("\n");
@@ -37,35 +34,88 @@
       });
   }
 
-  
-  function calculateResponses(data, moves) {
-    const counts = {};
+  function getOpeningsWithPly(data) {
+    const openingsSet = new Set();
     data.forEach((game) => {
-      if (game.moves) {
-        const gameMoves = game.moves.split(" ");
-        if (moves.every((move, index) => move === gameMoves[index])) {
-          const nextMove = gameMoves[moves.length];
-          if (nextMove) {
-            counts[nextMove] = (counts[nextMove] || 0) + 1;
-          }
-        }
+      if (game.opening_name && game.opening_ply && parseInt(game.opening_ply) <= 2) {
+        openingsSet.add(game.opening_name);
       }
     });
-    return counts;
+    return Array.from(openingsSet);
   }
+  
+  function calculateResponses(data, moves) {
+  const counts = {};
 
-  function updateChessBoard() {
-    if (chess) {
-      chess.reset(); 
-      selectedMoves.forEach(move => {
-        try {
-          chess.move(move); 
-        } catch (error) {
-          console.error("Invalid move:", move, error);
+  data.forEach((game) => {
+    if (game.moves) {
+      const gameMoves = game.moves.split(" ");
+      if (moves.length === 0) {
+        const firstMove = gameMoves[0]; 
+        if (firstMove) counts[firstMove] = (counts[firstMove] || 0) + 1;
+      } else {
+        if (moves.every((move, index) => move === gameMoves[index])) {
+          const nextMove = gameMoves[moves.length];
+          if (nextMove) counts[nextMove] = (counts[nextMove] || 0) + 1;
         }
-      });
+      }
     }
+  });
+
+  return counts;
+}
+function handleOpeningSelection(openingName) {
+ 
+resetGame();
+const openingMoves = findOpeningMoves(openingName);
+
+if (openingMoves) {
+  selectedMoves.push(openingMoves[0], openingMoves[1]);
+
+  updateChartWithSelectedMoves();
+  updateChessBoard();
+} else {
+  console.error("Moves for the selected opening not found.");
+}
+}
+
+function findOpeningMoves(openingName) {
+const game = movesData.find(game => game.opening_name === openingName);
+if (game && game.moves) {
+  // Split the moves and return the first two
+  const moves = game.moves.split(" ");
+  return moves.slice(0, 2);  // Slice to only get the first two moves
+}
+return null;
+}
+
+function updateChartWithSelectedMoves() {
+
+  const responses = calculateResponses(movesData, selectedMoves);
+
+  
+  updateChart("moveChart1", `Responses to ${selectedMoves.join(" ")}`, responses);
+
+  updateWinChart("winChart1", movesData, selectedMoves);
+  updateRatedChart("ratedChart", movesData, selectedMoves);
+  updateVictoryStatusChart("victoryStatusChart", movesData, selectedMoves);
+  updateTimeCategoryChart("timeCategoryChart", movesData, selectedMoves);
+}
+
+
+function updateChessBoard() {
+  if (chess) {
+    chess.reset();  
+    selectedMoves.forEach(move => {
+      try {
+        chess.move(move);  
+      } catch (error) {
+        console.error("Error applying move:", move, error);
+      }
+    });
   }
+}
+
 
   function renderChart(canvasId, label, responses) {
   const canvas = document.getElementById(canvasId);
@@ -87,27 +137,43 @@
         ],
       },
       options: {
+        responsive: false,
         scales: {
-          y: { beginAtZero: true },
+          x: {
+            ticks: {
+              autoSkip: false, 
+              maxRotation: 90,  
+              minRotation: 45,  
+            },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1,
+            },
+          },
         },
         onClick: (event) => {
-          const activePoints = chartInstance.getElementsAtEventForMode(
-            event,
-            "nearest",
-            { intersect: true },
-            true
-          );
-          if (activePoints.length > 0) {
-            const clickedMove = chartInstance.data.labels[activePoints[0].index];
-            selectedMoves.push(clickedMove);
-            // Update both the bar chart and pie chart when a bar is clicked
-            updateChart("moveChart1", `Responses to ${selectedMoves.join(" ")}`, calculateResponses(movesData, selectedMoves));
-            updateWinChart("winChart1", movesData, selectedMoves); // Add this line to update the pie chart
-            console.log("Updating victory status chart...");
-            updateVictoryStatusChart("victoryStatusChart", movesData, selectedMoves);
-            updateChessBoard(); // Update the chessboard
-          }
-        },
+  const activePoints = chartInstance.getElementsAtEventForMode(
+    event,
+    "nearest",
+    { intersect: true },
+    true
+  );
+  if (activePoints.length > 0) {
+    const clickedMove = chartInstance.data.labels[activePoints[0].index];
+    selectedMoves.push(clickedMove); // Add clicked move to the list of selected moves
+
+    // Update all charts with new selected moves
+    updateChart("moveChart1", `Responses to ${selectedMoves.join(" ")}`, calculateResponses(movesData, selectedMoves));
+    updateWinChart("winChart1", movesData, selectedMoves);
+    updateRatedChart("ratedChart", movesData, selectedMoves);
+    updateVictoryStatusChart("victoryStatusChart", movesData, selectedMoves);
+    updateTimeCategoryChart("timeCategoryChart", movesData, selectedMoves); // This will now update based on selected moves
+    updateChessBoard();
+  }
+}
+
       },
     });
   } else {
@@ -117,6 +183,135 @@
     chartInstance.update();
   }
 }
+
+function updateRatedChart(canvasId, gamesData, selectedMoves = []) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext("2d");
+
+  // Calculate the rated and unrated counts based on the selected moves
+  const ratedCounts = { Rated: 0, Unrated: 0 };
+
+  // Loop through the games data and count rated/unrated games
+  gamesData.forEach((game) => {
+    if (game.rated) {
+      const gameMoves = game.moves.split(" ");
+      if (selectedMoves.every((move, index) => move === gameMoves[index])) {
+        if (game.rated === "TRUE") {
+          ratedCounts.Rated++;
+        } else if (game.rated === "FALSE") {
+          ratedCounts.Unrated++;
+        }
+      }
+    }
+  });
+
+  // If the chart is not initialized, create a new one
+  if (!ratedChartInstance) {
+    ratedChartInstance = new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels: ["Rated", "Unrated"],
+        datasets: [
+          {
+            data: [ratedCounts.Rated, ratedCounts.Unrated],
+            backgroundColor: ["#3D9B9B","#E1F8F7"],
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: false,
+        plugins: {
+          legend: {
+            display: true,
+          },
+        },
+      },
+    });
+  } else {
+    // If the chart is already initialized, just update it with new data
+    ratedChartInstance.data.datasets[0].data = [ratedCounts.Rated, ratedCounts.Unrated];
+    ratedChartInstance.update();
+  }
+}
+function updateTimeCategoryChart(canvasId, gamesData, selectedMoves = []) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext("2d");
+
+  // Initialize counters for the categories
+  const timeCategories = { Bullet: 0, Blitz: 0, Rapid: 0, Classical: 0 };
+
+  // Loop through the games data and classify them based on time
+  gamesData.forEach((game) => {
+    if (game.moves) {
+      const gameMoves = game.moves.split(" ");
+      
+      // Check if the game's moves start with the selected moves
+      if (selectedMoves.every((move, index) => move === gameMoves[index])) {
+        if (game.increment_code) {
+          const timeParts = game.increment_code.split("+");
+          const minutes = parseInt(timeParts[0]);
+
+          // Classify based on the time (minutes)
+          if (minutes <= 2) {
+            timeCategories.Bullet++;
+          } else if (minutes <= 5) {
+            timeCategories.Blitz++;
+          } else if (minutes <= 10) {
+            timeCategories.Rapid++;
+          } else {
+            timeCategories.Classical++;
+          }
+        }
+      }
+    }
+  });
+
+  console.log("Time Categories Calculated:", timeCategories); // Debugging log
+
+  // If the chart is not initialized, create a new one
+  if (!timeCategoryChartInstance) {
+    timeCategoryChartInstance = new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels: ["Bullet", "Blitz", "Rapid", "Classical"],
+        datasets: [
+          {
+            data: [
+              timeCategories.Bullet,
+              timeCategories.Blitz,
+              timeCategories.Rapid,
+              timeCategories.Classical,
+            ],
+            backgroundColor: ["#E1F8F7", "#4BC0C0", "#3D9B9B", "#2A7A7A"],
+
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: false,
+        plugins: {
+          legend: {
+            display: true,
+          },
+        },
+      },
+    });
+  } else {
+    // If the chart is already initialized, just update it with new data
+    timeCategoryChartInstance.data.datasets[0].data = [
+      timeCategories.Bullet,
+      timeCategories.Blitz,
+      timeCategories.Rapid,
+      timeCategories.Classical,
+    ];
+    timeCategoryChartInstance.update();
+  }
+}
+
+
+
 
 function updateVictoryStatusChart(canvasId, gamesData, selectedMoves) {
   const canvas = document.getElementById(canvasId);
@@ -141,7 +336,6 @@ function updateVictoryStatusChart(canvasId, gamesData, selectedMoves) {
     }
   });
   console.log("Victory Status Counts: ", victoryStatusCounts);
-  // Update or create the pie chart for victory status
   if (!victoryStatusChartInstance) {
     victoryStatusChartInstance = new Chart(ctx, {
       type: "pie",
@@ -150,19 +344,16 @@ function updateVictoryStatusChart(canvasId, gamesData, selectedMoves) {
         datasets: [
           {
             data: Object.values(victoryStatusCounts),
-            backgroundColor: ["#FF6347", "#FFD700", "#008080", "#808080"],
+            backgroundColor: ["#FF0000", "#4BC0C0", "#E1F8F7", "#808080"],
             borderWidth: 1,
           },
         ],
       },
       options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            display: false,
-          },
-        },
-        cutoutPercentage: 70,
+        responsive: false,
+      maintainAspectRatio: false,  // This makes it easier to control size
+      plugins: { legend: { display: true } },
+      layout: { padding: 5 },
       },
     });
   } else {
@@ -188,20 +379,34 @@ function updateVictoryStatusChart(canvasId, gamesData, selectedMoves) {
   function resetGame() {
     if (chess) chess.reset();
     selectedMoves = [];
+   
+
+    // Recalculate initial responses for the starting position
+    const initialResponses = calculateResponses(movesData, []);
+
+    // Reset bar chart to initial state (showing all possible white moves)
     if (chartInstance) {
-      chartInstance.destroy();
-      chartInstance = null; 
+        chartInstance.data.labels = Object.keys(initialResponses);
+        chartInstance.data.datasets[0].data = Object.values(initialResponses);
+        chartInstance.data.datasets[0].label = "Responses to starting position";
+        chartInstance.update();
+    } else {
+        updateChart("moveChart1", "Responses to starting position", initialResponses);
     }
-    if (winChartInstance) {
-    winChartInstance.destroy();
-    winChartInstance = null; 
-  }
-  if (victoryStatusChartInstance) {
-    victoryStatusChartInstance.destroy();
-    victoryStatusChartInstance = null; 
-  }
-    updateChart("moveChart1", "Responses to starting position");
-  }
+
+    // Reset win chart to initial state
+    updateWinChart("winChart1", movesData, []);
+
+    // Reset victory status chart to initial state
+    updateVictoryStatusChart("victoryStatusChart", movesData, []);
+
+    // Reset rated chart
+    updateRatedChart("ratedChart", movesData);
+    updateTimeCategoryChart("timeCategoryChart",movesData);
+    
+}
+
+
 
   function updateWinChart(canvasId, gamesData, selectedMoves) {
   const canvas = document.getElementById(canvasId);
@@ -238,10 +443,10 @@ function updateVictoryStatusChart(canvasId, gamesData, selectedMoves) {
         ],
       },
       options: {
-        responsive: true,
+        responsive: false,
         plugins: {
           legend: {
-            display: false,
+            display: true,
           },
         },
         cutoutPercentage: 70,
@@ -266,93 +471,7 @@ function getTopOpenings(data) {
       .slice(0, 5);
     return sortedOpenings.map(([opening, count]) => ({ opening, count }));
   }
-  function drawOpeningChart(topOpenings) {
-  const margin = { top: 40, right: 30, bottom: 60, left: 50 };
-  const width = 500 - margin.left - margin.right;
-  const height = 300 - margin.top - margin.bottom;
-
-  const svg = d3
-    .select("#opening-chart")
-    .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", `translate(${margin.left}, ${margin.top})`);
-
-  const x = d3
-    .scaleBand()
-    .domain(topOpenings.map((d) => d.opening))
-    .range([0, width])
-    .padding(0.1);
-
-  const y = d3
-    .scaleLinear()
-    .domain([0, d3.max(topOpenings, (d) => d.count)])
-    .nice()
-    .range([height, 0]);
-
-  const tooltip = d3
-    .select("body")
-    .append("div")
-    .style("position", "absolute")
-    .style("background-color", "#fff")
-    .style("border", "1px solid #ccc")
-    .style("border-radius", "5px")
-    .style("padding", "10px")
-    .style("display", "none")
-    .style("box-shadow", "0 4px 8px rgba(0, 0, 0, 0.2)");
-
-  const openingFens = {
-    "Van't Kruijs Opening": "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1",  
-    "Sicilian Defense": "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2",  
-    "Sicilian Defense: Bowdler Attack": "rnbqkbnr/pp1ppppp/8/2p5/2B1P3/8/PPPP1PPP/RNBQK1NR b KQkq - 1 2", 
-    "French Defense: Knight Variation": "rnbqkbnr/pppp1ppp/4p3/8/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
-    "Scotch Game": "rnbqkbnr/pppp1ppp/8/4p3/3PP3/8/PPP2PPP/RNBQKBNR b KQkq d3 0 2", 
-  };
-
-  svg
-    .selectAll(".bar")
-    .data(topOpenings)
-    .enter()
-    .append("rect")
-    .attr("class", "bar")
-    .attr("x", (d) => x(d.opening))
-    .attr("y", (d) => y(d.count))
-    .attr("width", x.bandwidth())
-    .attr("height", (d) => height - y(d.count))
-    .attr("fill", "#4682B4")
-    .on("mouseover", (event, d) => {
-      tooltip
-        .style("display", "block")
-        .html(`<strong>${d.opening}</strong><br>Count: ${d.count}`);
-      d3.select(event.currentTarget).attr("fill", "#355f73");
-    })
-    .on("mousemove", (event) => {
-      tooltip
-        .style("left", `${event.pageX + 10}px`)
-        .style("top", `${event.pageY - 20}px`);
-    })
-    .on("mouseout", (event) => {
-      tooltip.style("display", "none");
-      d3.select(event.currentTarget).attr("fill", "#4682B4");
-    })
-    .on("click", (event, d) => {
-      const fen = openingFens[d.opening];
-      if (fen) {
-        console.log("Loading FEN:", fen);
-        chess.load(fen); 
-      } else {
-        console.error("No FEN found for this opening!");
-      }
-    });
-
-  svg
-    .append("g")
-    .attr("transform", `translate(0, ${height})`)
-    .call(d3.axisBottom(x));
-
-  svg.append("g").call(d3.axisLeft(y).ticks(5));
-}
+  
 
 onMount(async () => {
   try {
@@ -361,9 +480,14 @@ onMount(async () => {
     const data = parseCSV(csvData);
     const rawData = d3.csvParse(csvData);
     topOpenings = getTopOpenings(rawData);
-    drawOpeningChart(topOpenings);
+    openings = getOpeningsWithPly(data);
     movesData = data;
-    updateChart("moveChart1", "Responses to starting position");
+    updateChart("moveChart1", "Responses to starting position", calculateResponses(movesData, []));
+    updateWinChart("winChart1", movesData, []);
+    updateRatedChart("ratedChart", movesData);
+    updateVictoryStatusChart("victoryStatusChart", movesData, []);
+    updateTimeCategoryChart("timeCategoryChart", movesData);
+
   } catch (error) {
     console.error("Error loading or processing CSV file:", error);
   }
@@ -375,7 +499,24 @@ onMount(async () => {
 </script>
 <style>
 
+#timeCategoryChart{
+  width: 200px; 
+  height: 200px; 
+} 
 
+#victoryStatusChart {
+  width: 220px; 
+  height: 220px; 
+}
+
+#ratedChart {
+  width: 180px;  
+  height: 180px; 
+}
+#winChart1 {
+  width: 200px;  
+  height: 200px; 
+}
   header {
     background-color: #f4f4f4;
     padding: 20px;
@@ -388,12 +529,6 @@ onMount(async () => {
     font-size: 1.8rem;
     color: #333;
   }
-
-  .chart {
-    margin: 30px 0;
-    width: 100%;
-  }
-
   header h2 {
     margin: 0;
     font-size: 1.2rem;
@@ -409,30 +544,19 @@ onMount(async () => {
     box-shadow: 0 0px 0px rgba(0, 0, 0, 0.1);
   }
 
-  
-  .visualizations-container {
-    position: absolute;
-    margin-top: 0px;
-    top: 80px; 
-    left: 0px;
+
+.visualization-box {
+    width: 250px;
+    height: 250px;
+    background-color: transparent;
+    padding: 10px;
+    border-radius: 8px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    background-color: transparent; 
-  }
-  .visualization-box {
-    width: 250px; 
-    height: 250px; 
-    margin-top: 45px;
-    background-color:transparent;
-    padding: 0px 0; 
-    border-radius: 8px; 
-    box-shadow: none; 
-    display: flex;
-    justify-content: left;
-    align-items: left;
-    overflow: hidden; 
-  }
+    align-items: center;
+    justify-content: center;
+   
+}
 
 
   button {
@@ -440,7 +564,7 @@ onMount(async () => {
     font-size: 16px;
     cursor: pointer;
     margin-top: 20px;
-    background-color: #4CAF50;
+    background-color: #4BC0C0;
     color: white;
     border: none;
     border-radius: 8px;
@@ -448,7 +572,7 @@ onMount(async () => {
   }
 
   button:hover {
-    background-color: #45a049;
+    background-color: #3D9B9B;
     transform: scale(1.05);
   }
 
@@ -460,28 +584,6 @@ onMount(async () => {
     background-color: #f9fafb;
     border-radius: 12px;
     box-shadow: 0 0px 0px rgba(0, 0, 0, 0.1);
-  }
-
-  .winner-line {
-    position: absolute; 
-    top: 610px; 
-    left: 50px;
-    font-size: 20px; 
-    color: #000000; 
-    font-family: Arial, sans-serif; 
-  }
-  .pie-line {
-    position: absolute; 
-    top: 300px; 
-    left: 30px;
-    font-size: 20px; 
-    color: #000000; 
-    font-family: Arial, sans-serif; 
-  }
-  .chart-container {
-    background-color: transparent;
-    padding: 0; 
-    margin: 0;
   }
 
   h1 {
@@ -515,55 +617,45 @@ onMount(async () => {
     border-color: #56c55a;
   }
 
-
-  .hoverable-container {
-    width: 400px; 
-    height: 250px; 
-    background-color: transparent; 
-    border-radius: 8px; 
-    box-shadow: 0 0px 0px rgba(0, 0, 0, 0.1); 
-    transition: all 0.3s ease; 
+  .main-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
     position: absolute;
-    right: 120px; 
-    top: 80px;
-    padding: 10px;
-  }
+    left: 0px;
+    top: 130px;
+}
 
-  .hoverable-container-two {
-    width: 400px; 
-    height: 250px; 
-    background-color: transparent; 
-    border-radius: 8px; 
-    box-shadow: 0 0px 0 rgba(0, 0, 0, 0.1); 
-    transition: all 0.3s ease; 
-    position: absolute;
-    right: 170px; 
-    top: 380px; 
-    padding: 10px;
-  }
-
-
-.main-container {
-    display: flex; 
-    gap: 20px; 
-  }
-
-  
-  .chess-container {
-    width: 2%; 
+.chess-container {
+    width: 600px; 
     background-color: #f9fafb;
     padding: 20px;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
+}
+#victoryStatusChartContainer {
+  position: absolute;
+  right: 0px;
+  top: 90px;
+}
 
-  .chart-container {
-    width: 35%; 
-    background-color: transparent;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 0px 0px rgba(0, 0, 0, 0.1);
-  }
+#winChart1Container {
+  position: absolute;
+  right: 0px;
+  top: 320px; 
+}
+
+#ratedChartContainer {
+  position: absolute;
+  right: 0px;
+  top: 540px;
+}
+#timeCategoryChartInstanceContainer {
+  position: absolute;
+  right: 250px;
+  top: 530px;
+}
+
 
 
   #chart-container {
@@ -577,60 +669,46 @@ onMount(async () => {
 </header>
 
 <main>
-  <div class="visualizations-container">
+  <div class="pie-chart-container" id="victoryStatusChartContainer">
     <div class="visualization-box">
       <canvas id="victoryStatusChart"></canvas>
-      <p class="pie-line">Victory type Pie Chart</p>
     </div>
+  </div>
 
+  <div class="pie-chart-container" id="winChart1Container">
     <div class="visualization-box">
-      <div class="chart-containertwo">
-        <canvas id="winChart1"></canvas>
-      </div>
-      <p class="winner-line">Winners by Color</p>
+      <canvas id="winChart1"></canvas>
     </div>
   </div>
 
-  <div class="hoverable-container">
-    
-<div id="opening-chart" class="chart"></div>
+  <div class="pie-chart-container" id="ratedChartContainer">
+    <div class="visualization-box">
+      <canvas id="ratedChart"></canvas>
+    </div>
   </div>
-
-  <div class="hoverable-container-two">
-    <TimeChart />
+  <div class="pie-chart-container" id="timeCategoryChartInstanceContainer">
+    <div class="visualization-box">
+      <canvas id="timeCategoryChart"></canvas>
+    </div>
   </div>
-
+  
   <div class="main-container">
     <div class="chess-container">
-      <Chess bind:this={chess} />
+      <Chess bind:this={chess}  />
       <button on:click={resetGame}>Reset</button>
       <button on:click={() => chess?.undo()}>Undo</button>
     </div>
 
-    <div class="chart-container">
-      <div style="max-width: 512px;">
-        <label for="moves">Select White's first move:</label>
-        <select
-          id="moves"
-          bind:value={selectedStartMove}
-          on:change={() => {
-            if (selectedStartMove) {
-              selectedMoves = [selectedStartMove];
-              const responses = calculateResponses(movesData, selectedMoves);
-              renderChart("moveChart1", `Responses to ${selectedStartMove}`, responses);
-              updateWinChart("winChart1", movesData, selectedMoves); // Update winner pie chart
-            }
-          }}
-        >
-          <option value="" disabled selected>Select a move</option>
-          {#each possibleWhiteMoves as move}
-            <option value={move}>{move}</option>
-          {/each}
-        </select>
-      </div>
-
+    <div>
+      <label for="opening-select">Select an Opening:</label>
+      <select id="opening-select" bind:value={selectedOpening} on:change={() => handleOpeningSelection(selectedOpening)}>
+        <option value="">Select Opening</option>
+        {#each openings as opening}
+          <option value={opening}>{opening}</option>
+        {/each}
+      </select>
       <div id="chart-container" style="display: {isChartVisible ? 'block' : 'none'};">
-        <canvas id="moveChart1" width="200" height="200"></canvas>
+        <canvas id="moveChart1" width="580" height="580"></canvas>
       </div>
     </div>
   </div>
