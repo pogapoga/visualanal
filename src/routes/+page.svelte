@@ -136,14 +136,17 @@ function updateChessBoard() {
           {
             label,
             data: Object.values(responses),
-            backgroundColor: "rgba(75, 192, 192, 0.6)",
-            borderColor: "rgba(75, 192, 192, 1)",
+            backgroundColor: "rgba(192, 174, 145, 0.6)",
+
+
+
+            borderColor: "rgba(192, 174, 145, 1)",
             borderWidth: 1,
           },
         ],
       },
       options: {animation: {
-  duration: 1000,
+  duration: 400,
   delay: (context) => context.dataIndex * 200, 
 },
         responsive: false,
@@ -171,9 +174,9 @@ function updateChessBoard() {
   );
   if (activePoints.length > 0) {
     const clickedMove = chartInstance.data.labels[activePoints[0].index];
-    selectedMoves.push(clickedMove); // Add clicked move to the list of selected moves
+    selectedMoves.push(clickedMove);
 
-    // Update all charts with new selected moves
+  
     updateChart("moveChart1", `Responses to ${selectedMoves.join(" ")}`, calculateResponses(movesData, selectedMoves));
     updateWinChart("winChart1", movesData, selectedMoves);
     updateRatedChart("ratedChart", movesData, selectedMoves);
@@ -199,7 +202,6 @@ function updateRatedChart(canvasId, gamesData, selectedMoves = []) {
   const canvas = document.getElementById(canvasId);
   const ctx = canvas.getContext("2d");
 
-  
   const ratedCounts = { Rated: 0, Unrated: 0 };
 
   gamesData.forEach((game) => {
@@ -214,6 +216,7 @@ function updateRatedChart(canvasId, gamesData, selectedMoves = []) {
       }
     }
   });
+
   if (!ratedChartInstance) {
     ratedChartInstance = new Chart(ctx, {
       type: "pie",
@@ -222,25 +225,27 @@ function updateRatedChart(canvasId, gamesData, selectedMoves = []) {
         datasets: [
           {
             data: [ratedCounts.Rated, ratedCounts.Unrated],
-            backgroundColor: ["#3D9B9B","#E1F8F7"],
+            backgroundColor: ["#c0ae91 ", "#f0d9b5"], 
             borderWidth: 1,
           },
         ],
       },
-      options: {animation: {animateScale: true,
-        duration: 3000,
-        easing: "easeOutBounce",
-      },
+      options: {
+        animation: { animateScale: true, duration: 3000, easing: "easeOutBounce" },
         responsive: false,
         plugins: {
-          legend: {
+          title: {
             display: true,
+            text: "Rated",
+            font: { size: 13 },
+            color: "#333",
+            padding: { top: 0, bottom: 0 },
           },
+          legend: { display: true },
         },
       },
     });
   } else {
-    
     ratedChartInstance.data.datasets[0].data = [ratedCounts.Rated, ratedCounts.Unrated];
     ratedChartInstance.update();
   }
@@ -249,21 +254,19 @@ function updateTimeCategoryChart(canvasId, gamesData, selectedMoves = []) {
   const canvas = document.getElementById(canvasId);
   const ctx = canvas.getContext("2d");
 
-  // Initialize counters for the categories
+
   const timeCategories = { Bullet: 0, Blitz: 0, Rapid: 0, Classical: 0 };
 
-  // Loop through the games data and classify them based on time
   gamesData.forEach((game) => {
     if (game.moves) {
       const gameMoves = game.moves.split(" ");
-      
-      // Check if the game's moves start with the selected moves
+    
       if (selectedMoves.every((move, index) => move === gameMoves[index])) {
         if (game.increment_code) {
           const timeParts = game.increment_code.split("+");
           const minutes = parseInt(timeParts[0]);
 
-          // Classify based on the time (minutes)
+ 
           if (minutes <= 2) {
             timeCategories.Bullet++;
           } else if (minutes <= 5) {
@@ -277,10 +280,6 @@ function updateTimeCategoryChart(canvasId, gamesData, selectedMoves = []) {
       }
     }
   });
-
-  console.log("Time Categories Calculated:", timeCategories); // Debugging log
-
-  // If the chart is not initialized, create a new one
   if (!timeCategoryChartInstance) {
     timeCategoryChartInstance = new Chart(ctx, {
       type: "pie",
@@ -294,7 +293,7 @@ function updateTimeCategoryChart(canvasId, gamesData, selectedMoves = []) {
               timeCategories.Rapid,
               timeCategories.Classical,
             ],
-            backgroundColor: ["#E1F8F7", "#4BC0C0", "#3D9B9B", "#2A7A7A"],
+            backgroundColor: ["#f0d9b5", "#e3c3a3", "#d6b192", "#c0ae91"], 
 
             borderWidth: 1,
           },
@@ -308,12 +307,22 @@ function updateTimeCategoryChart(canvasId, gamesData, selectedMoves = []) {
         plugins: {
           legend: {
             display: true,
+          },title: {
+            display: true,
+            text: "Time control", 
+            font: {
+              size: 13,
+            },
+            color: "#333",
+            padding: {
+    top: 0,
+    bottom: 0, 
+  },
           },
         },
       },
     });
   } else {
-    // If the chart is already initialized, just update it with new data
     timeCategoryChartInstance.data.datasets[0].data = [
       timeCategories.Bullet,
       timeCategories.Blitz,
@@ -324,10 +333,18 @@ function updateTimeCategoryChart(canvasId, gamesData, selectedMoves = []) {
   }
 }
 
-
 function updateWhiteRatingChart(canvasId, gamesData, selectedMoves = []) {
   const canvas = document.getElementById(canvasId);
+  if (!canvas) {
+    console.error("Canvas not found:", canvasId);
+    return;
+  }
+
   const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    console.error("Failed to get canvas context");
+    return;
+  }
 
   const ratingCategories = {
     From1000To1500: 0,
@@ -335,19 +352,17 @@ function updateWhiteRatingChart(canvasId, gamesData, selectedMoves = []) {
     MoreThan2000: 0,
   };
 
-
   gamesData.forEach((game) => {
     if (game.moves) {
       const gameMoves = game.moves.split(" ");
-
       if (selectedMoves.every((move, index) => move === gameMoves[index])) {
         if (game.white_rating) {
           const whiteRating = parseInt(game.white_rating);
           if (whiteRating < 1500) {
             ratingCategories.From1000To1500++;
-          } else if (whiteRating >= 1500 && whiteRating < 2000) {
+          } else if (whiteRating < 2000) {
             ratingCategories.From1500To2000++;
-          } else if (whiteRating >= 2000) {
+          } else {
             ratingCategories.MoreThan2000++;
           }
         }
@@ -355,18 +370,13 @@ function updateWhiteRatingChart(canvasId, gamesData, selectedMoves = []) {
     }
   });
 
-  console.log("White Rating Categories Calculated:", ratingCategories); 
+  console.log("White Rating Categories Calculated:", ratingCategories);
 
   if (!whiteRatingChartInstance) {
     whiteRatingChartInstance = new Chart(ctx, {
       type: "pie",
       data: {
-        labels: [
-          
-          "elo<1500",
-          "elo<2000",
-          "elo>2000"
-        ],
+        labels: ["<1500", "<2000", ">2000"], 
         datasets: [
           {
             data: [
@@ -374,28 +384,40 @@ function updateWhiteRatingChart(canvasId, gamesData, selectedMoves = []) {
               ratingCategories.From1500To2000,
               ratingCategories.MoreThan2000,
             ],
-            backgroundColor: ["#E1F8F7", "#4BC0C0", "#3D9B9B"],
-
+            backgroundColor: ["#f0d9b5", "#d1b495", "#c0ae91"], 
             borderWidth: 1,
           },
         ],
       },
       options: {
-        animation: {animateScale: true,
-        duration: 3000,
-        easing: "easeOutBounce",
-      },
         responsive: false,
+        maintainAspectRatio: false,
+        animation: {
+          animateScale: true,
+          duration: 3000,
+          easing: "easeOutBounce",
+        },
         plugins: {
           legend: {
             display: true,
+          },
+          title: {
+            display: true,
+            text: "Rating (elo)",
+            font: {
+              size: 13,
+            },
+            color: "#333",
+            padding: {
+    top: 10,
+    bottom: 10, // Pushes the title down
+  },
           },
         },
       },
     });
   } else {
     whiteRatingChartInstance.data.datasets[0].data = [
-      ratingCategories.LessThan1000,
       ratingCategories.From1000To1500,
       ratingCategories.From1500To2000,
       ratingCategories.MoreThan2000,
@@ -404,23 +426,18 @@ function updateWhiteRatingChart(canvasId, gamesData, selectedMoves = []) {
   }
 }
 
+
 function updateTurnsCategoryChart(canvasId, gamesData, selectedMoves = []) {
   const canvas = document.getElementById(canvasId);
   const ctx = canvas.getContext("2d");
-
 
   const turnsCategories = { LessThan20: 0, Between20And40: 0, Between40And60: 0, MoreThan60: 0 };
 
   gamesData.forEach((game) => {
     if (game.moves) {
       const gameMoves = game.moves.split(" ");
-
-    
       if (selectedMoves.every((move, index) => move === gameMoves[index])) {
-
         const numberOfTurns = game.turns;
-
-
         if (numberOfTurns < 20) {
           turnsCategories.LessThan20++;
         } else if (numberOfTurns >= 20 && numberOfTurns <= 40) {
@@ -434,46 +451,36 @@ function updateTurnsCategoryChart(canvasId, gamesData, selectedMoves = []) {
     }
   });
 
-  console.log("Turns Categories Calculated:", turnsCategories); 
-
   if (!turnsCategoryChartInstance) {
     turnsCategoryChartInstance = new Chart(ctx, {
       type: "pie",
       data: {
-        labels: ["<20 Turns", "20-40 Turns", "40-60 Turns", ">60 Turns"],
+        labels: ["<20", "20-40", "40-60", ">60"],
         datasets: [
           {
-            data: [
-              turnsCategories.LessThan20,
-              turnsCategories.Between20And40,
-              turnsCategories.Between40And60,
-              turnsCategories.MoreThan60,
-            ],
-            backgroundColor: ["#E1F8F7", "#4BC0C0", "#3D9B9B", "#2A7A7A"], // Adjust the colors as needed
+            data: Object.values(turnsCategories),
+            backgroundColor: ["#f0d9b5", "#e3c3a3", "#d6b192", "#c0ae91"], 
             borderWidth: 1,
           },
         ],
       },
-      options: {animation: {animateScale: true,
-        duration: 3000,
-        easing: "easeOutBounce",
-      },
+      options: {
+        animation: { animateScale: true, duration: 3000, easing: "easeOutBounce" },
         responsive: false,
         plugins: {
-          legend: {
+          title: {
             display: true,
+            text: "Turns",
+            font: { size: 13 },
+            color: "#333",
+            padding: { top: 0, bottom: 0 },
           },
+          legend: { display: true },
         },
       },
     });
   } else {
-    
-    turnsCategoryChartInstance.data.datasets[0].data = [
-      turnsCategories.LessThan20,
-      turnsCategories.Between20And40,
-      turnsCategories.Between40And60,
-      turnsCategories.MoreThan60,
-    ];
+    turnsCategoryChartInstance.data.datasets[0].data = Object.values(turnsCategories);
     turnsCategoryChartInstance.update();
   }
 }
@@ -503,28 +510,34 @@ function updateVictoryStatusChart(canvasId, gamesData, selectedMoves) {
       }
     }
   });
-  console.log("Victory Status Counts: ", victoryStatusCounts);
+
   if (!victoryStatusChartInstance) {
     victoryStatusChartInstance = new Chart(ctx, {
       type: "pie",
       data: {
-        labels: ["Mate", "Resign", "Out of Time", "Draw"],
+        labels: ["Mate", "Resign", "Time", "Draw"],
         datasets: [
           {
             data: Object.values(victoryStatusCounts),
-            backgroundColor: ["#FF0000", "#4BC0C0", "#E1F8F7", "#808080"],
+            backgroundColor: ["#FF0000", "#c0ae91", "#f0d9b5", "#808080"], 
             borderWidth: 1,
           },
         ],
       },
-      options: {animation: {animateScale: true,
-        duration: 3000,
-        easing: "easeOutBounce",
-      },
+      options: {
+        animation: { animateScale: true, duration: 3000, easing: "easeOutBounce" },
         responsive: false,
-      maintainAspectRatio: false,  // This makes it easier to control size
-      plugins: { legend: { display: true } },
-      layout: { padding: 5 },
+        plugins: {
+          title: {
+            display: true,
+            text: "Victory Type",
+            font: { size: 13 },
+            color: "#333",
+            padding: { top: 0, bottom: 0 },
+          },
+          legend: { display: true },
+        },
+        layout: { padding: 5 },
       },
     });
   } else {
@@ -569,7 +582,7 @@ function updateVictoryStatusChart(canvasId, gamesData, selectedMoves) {
 
 
 
-  function updateWinChart(canvasId, gamesData, selectedMoves) {
+function updateWinChart(canvasId, gamesData, selectedMoves) {
   const canvas = document.getElementById(canvasId);
   const ctx = canvas.getContext("2d");
 
@@ -594,24 +607,27 @@ function updateVictoryStatusChart(canvasId, gamesData, selectedMoves) {
     winChartInstance = new Chart(ctx, {
       type: "pie",
       data: {
-        labels: ["White Wins", "Black Wins", "Draws"],
+        labels: ["White", "Black", "Draws"],
         datasets: [
           {
             data: Object.values(winCounts),
-            backgroundColor: ["#D3D3D3", "#000000", "#808080"],
+            backgroundColor: ["#D3D3D3", "#000000", "#808080"], 
             borderWidth: 1,
           },
         ],
       },
-      options: {animation: {animateScale: true,
-        duration: 3000,
-        easing: "easeOutBounce",
-      },
+      options: {
+        animation: { animateScale: true, duration: 3000, easing: "easeOutBounce" },
         responsive: false,
         plugins: {
-          legend: {
+          title: {
             display: true,
+            text: "Wins by color",
+            font: { size: 13 },
+            color: "#333",
+            padding: { top: 0, bottom: 0 },
           },
+          legend: { display: true },
         },
         cutoutPercentage: 70,
       },
@@ -666,34 +682,34 @@ onMount(async () => {
 <style>
 
 #turnsCategoryChart{
-  width: 220px; 
-  height: 220px; 
+  width: 200px; 
+  height: 200px; 
 } 
 #timeCategoryChart{
   width: 200px; 
   height: 200px; 
 } 
 #whiteRatingChart{
-  width: 190px; 
-  height: 190px; 
+  width: 200px; 
+  height: 200px; 
 } 
 
 
 #victoryStatusChart {
-  width: 220px; 
-  height: 220px; 
+  width: 200px; 
+  height: 200px; 
 }
 
 #ratedChart {
-  width: 180px;  
-  height: 180px; 
+  width: 190px;  
+  height: 190px; 
 }
 #winChart1 {
   width: 200px;  
   height: 200px; 
 }
   header {
-    background-color: #edf9ff;
+    background-color: #fef3e1;
     padding: 20px;
     text-align: center;
     border-bottom: 2px solid #ddd;
@@ -712,6 +728,7 @@ onMount(async () => {
 
   main {
     padding: 20px;
+    max-height: 1000px;
     max-width: 1200px;
     margin: 0 auto;
     background-color: #fff;
@@ -734,20 +751,21 @@ onMount(async () => {
 }
 
 
-  button {
+button {
     padding: 12px 24px;
     font-size: 16px;
     cursor: pointer;
     margin-top: 20px;
-    background-color: rgb(138, 216, 207);
-    color: white;
-    border: none;
+    background-color: rgb(240, 217, 181);
+    color: black;
+    border: 1.5px solid black; /* Added black border */
     border-radius: 8px;
     transition: all 0.3s ease;
-  }
+    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5); /* Added shadow */
+}
 
   button:hover {
-    background-color: #3D9B9B;
+    background-color: #c0ae91;
     transform: scale(1.05);
   }
 
@@ -765,14 +783,14 @@ onMount(async () => {
     text-align: center;
     margin-bottom: 20px;
     font-size: 2rem;
-    color: #2d3748;
+    color: #f0d9b5;
   }
 
   h2 {
     text-align: center;
     margin-top: 20px;
     font-size: 1.5rem;
-    color: #4A5568;
+    color: #f0d9b5;
   }
 
  
@@ -789,7 +807,7 @@ onMount(async () => {
 
   select:focus {
     outline: none;
-    border-color: #56c55a;
+    border-color: #edaa67;
   }
 
   .main-container {
